@@ -2,7 +2,7 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
-public class VoronoiCell : MonoBehaviour
+public class VoronoiCell
 {
     public Vector3 seed;
     public List<Vector3> vertices;

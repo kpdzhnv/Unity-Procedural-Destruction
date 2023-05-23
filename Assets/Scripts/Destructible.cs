@@ -6,8 +6,8 @@ public class Destructible : MonoBehaviour
 {
     public Voronoi voronoi;
     bool debuggg;
-    public int count = 10;
-    public int size = 5;
+    //public int count = 1;
+    //public int size = 1;
 
     MeshFilter mf;
 
@@ -15,7 +15,6 @@ public class Destructible : MonoBehaviour
     void Start()
     {
         debuggg = false;
-
     }
 
     // Update is called once per frame
@@ -23,7 +22,6 @@ public class Destructible : MonoBehaviour
     {
         if (Input.GetButtonDown("Jump"))
         {
-
             mf = GetComponent<MeshFilter>();
             voronoi = new Voronoi(mf.sharedMesh);
 

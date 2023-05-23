@@ -88,7 +88,8 @@ public class Delaunay
         public bool CircumCircleContains(Vector3 v)
         {
             Vector3 dist = v - Circumcenter;
-            return dist.sqrMagnitude <= CircumradiusSquared;
+            // a slight inaccuracy because there can be 90 degree angles and the circumradius is on the face !
+            return dist.sqrMagnitude <= CircumradiusSquared - 0.1f; 
         }
 
         public List<Vector3> GetVertices()
@@ -270,13 +271,14 @@ public class Delaunay
 
         InitializeTheTetrahedron();
 
+        // adding vertices 
         foreach (var vertex in Vertices)
         {
             List<Triangle> triangles = new List<Triangle>();
 
+            // check every tetrahedron for the delauney rule
             foreach (var t in Tetrahedra)
             {
-                // check for the delauney rule
                 if (t.CircumCircleContains(vertex))
                 {
                     t.IsBad = true;
@@ -287,7 +289,7 @@ public class Delaunay
                 }
             }
 
-            // ?????
+            // check if there are repetitions in triangles
             for (int i = 0; i < triangles.Count; i++)
             {
                 for (int j = i + 1; j < triangles.Count; j++)
@@ -300,9 +302,7 @@ public class Delaunay
                 }
             }
 
-            // эту строчку можно запихнуть в цикл, в котором проверяется описанная окружность и убрать булевкусю isBad
             Tetrahedra.RemoveAll((Tetrahedron t) => t.IsBad);
-            // аналогично
             triangles.RemoveAll((Triangle t) => t.IsBad);
 
             foreach (var triangle in triangles)
@@ -410,9 +410,9 @@ public class Delaunay
         float dx = maxX - minX;
         float dy = maxY - minY;
         float dz = maxZ - minZ;
-        float deltaMax = Mathf.Max(dx, dy, dz) * 5;
+        float deltaMax = Mathf.Max(dx, dy, dz) * 20; // 20 needs tests!!!!
 
-        Vector3 p1 = new Vector3(minX - 1, minY - 1, minZ - 1);
+        Vector3 p1 = new Vector3(minX - 10, minY - 10, minZ - 10); // 10 needs tests !!!!!
         Vector3 p2 = new Vector3(maxX + deltaMax, minY - 1, minZ - 1);
         Vector3 p3 = new Vector3(minX - 1, maxY + deltaMax, minZ - 1);
         Vector3 p4 = new Vector3(minX - 1, minY - 1, maxZ + deltaMax);
