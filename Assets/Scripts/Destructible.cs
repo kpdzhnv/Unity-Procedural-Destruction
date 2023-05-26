@@ -10,6 +10,7 @@ public class Destructible : MonoBehaviour
     //public int size = 1;
 
     MeshFilter mf;
+    Collider mc;
 
     // Start is called before the first frame update  
     void Start()
@@ -23,7 +24,8 @@ public class Destructible : MonoBehaviour
         if (Input.GetButtonDown("Jump"))
         {
             mf = GetComponent<MeshFilter>();
-            voronoi = new Voronoi(mf.sharedMesh);
+            mc = GetComponent<Collider>();
+            voronoi = new Voronoi(mf.sharedMesh, mc.bounds);
 
             voronoi.Generate();
             foreach(VoronoiCell cell in voronoi.cells)
@@ -51,12 +53,12 @@ public class Destructible : MonoBehaviour
             // ----------------------- enabling debugging info --------------------------------
             debuggg = true;
 
-            if (debuggg)
-            {
-                Debug.Log("delaunay.Vertices.Count " + voronoi.delaunay.Vertices.Count);
-                Debug.Log("delaunay.Edges.Count " + voronoi.delaunay.Edges.Count);
-                Debug.Log("delaunay.Tetrahedra.Count " + voronoi.delaunay.Tetrahedra.Count);
-            }
+            //if (debuggg)
+            //{
+            //    Debug.Log("delaunay.Vertices.Count " + voronoi.delaunay.Vertices.Count);
+            //    Debug.Log("delaunay.Edges.Count " + voronoi.delaunay.Edges.Count);
+            //    Debug.Log("delaunay.Tetrahedra.Count " + voronoi.delaunay.Tetrahedra.Count);
+            //}
         }
 
     }
