@@ -4,20 +4,29 @@ using UnityEngine;
 
 public class Voronoi
 {
+    // class that generates Delaunay
     public Delaunay delaunay;
-    public int count = 1;
+    // amount of points to be generated inside the mesh
+    public int insidePointsCount = 5;
+    // amount of points of the initial mesh
+    public int boundaryPointsCount;
+    // bounding box, that is used for an efficient points generation
     public Vector3 minBounds, maxBounds;
 
+    // initial mesh info
     public Vector3[] meshVertices;
     public int[] meshTriangles;
 
+    // vertices that are used for the algorithms
     public List<Vector3> vertices;
+    // output array of Voronoi cells
     public List<VoronoiCell> cells;
 
     public Voronoi(Mesh mesh, Bounds bounds)
     {
         meshVertices = mesh.vertices;
         meshTriangles = mesh.triangles;
+        boundaryPointsCount = meshVertices.Length;
 
         cells = new List<VoronoiCell>();
         vertices = new List<Vector3>();
@@ -30,22 +39,34 @@ public class Voronoi
     {
         GenerateVertices();
 
-        delaunay = new Delaunay();
-        delaunay.Triangulate(vertices);
+        delaunay = new Delaunay(vertices, meshVertices, meshTriangles);
+        delaunay.Triangulate();
 
+        // each Delaunay vertice is a center of a corresponding Voronoi cell
         foreach (var v in delaunay.Vertices)
         {
             var points = new List<Vector3>();
-            // get all the points for the cell
-            // using the duality of the Delaunay & Voronoi
+            var tets = new List<Delaunay.Tetrahedron>();
+
+            // get all the points for the cell using the duality of the Delaunay & Voronoi
             foreach (var t in delaunay.Tetrahedra)
                 if (t.ContainsVertex(v))
+                {
+                    // add the circumcenter
                     points.Add(t.Circumcenter);
+
+                    if (!IsInsideMesh(t.Circumcenter))
+                        // add the tetrahedra to later calculate the intersection
+                        tets.Add(t);
+                }
 
             if (points.Count < 4)
                 continue;
 
             VoronoiCell cell = new VoronoiCell(v, points);
+
+            // after creating the basic cell, it needs to be cut with the faces of the initial mesh
+             
             cells.Add(cell);
         }
     }
@@ -60,7 +81,7 @@ public class Voronoi
         }
 
         int pointcount = 0;
-        while (pointcount != count)
+        while (pointcount != insidePointsCount)
         {
             float x = Random.Range(minBounds.x, maxBounds.x);
             float y = Random.Range(minBounds.y, maxBounds.y);
@@ -74,12 +95,11 @@ public class Voronoi
         }
     }
 
-    // later on, a ray is cast through the vertice to check intersection with the triangles
     public bool IsInsideMesh(Vector3 v)
     {
         // https://stackoverflow.com/questions/2049582/how-to-determine-if-a-point-is-in-a-2d-triangle
         // taking projection of the mesh (ignoring the y coordinate)
-        // to get a small set of triangles
+        // to get a small set of triangles right aboce and under the point
         List<int> intersectingTriangles = new List<int>();
         for (int i = 0; i < meshTriangles.Length; i+= 3)
         {
@@ -88,6 +108,7 @@ public class Voronoi
             Vector3 p2 = meshVertices[meshTriangles[i+1]];
             Vector3 p3 = meshVertices[meshTriangles[i + 2]];
 
+            // check if point is inside the triangle in 2D
             float d1, d2, d3;
             bool has_neg, has_pos;
 
@@ -107,6 +128,7 @@ public class Voronoi
             }
         }
 
+        // check if there are no intersections
         if (intersectingTriangles.Count == 0)
             return false;
 
@@ -126,7 +148,6 @@ public class Voronoi
 
             var det = a00 * a11 * a22 + a01 * a12 * a20 + a02 * a10 * a21 -
                 a02 * a11 * a20 - a01 * a10 * a22 - a00 * a12 * a21;
-            //Debug.Log($"det: {det}, p1: {p1}, p2: {p2}, p3: {p3}");
             if (det > 0)
                 countoutside++;
             else

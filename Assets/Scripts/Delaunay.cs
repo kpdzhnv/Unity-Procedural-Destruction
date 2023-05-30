@@ -14,6 +14,7 @@ public class Delaunay
         public bool IsBad { get; set; }
 
         public Vector3 Circumcenter { get; set; }
+        public Vector3 Centroid { get; set; }
         float CircumradiusSquared { get; set; }
 
         public Tetrahedron(Vector3 a, Vector3 b, Vector3 c, Vector3 d)
@@ -23,6 +24,11 @@ public class Delaunay
             C = c;
             D = d;
             CalculateCircumsphere();
+            CalculateCentroid();
+        }
+        void CalculateCentroid()
+        {
+            Centroid = new Vector3((A.x + B.x + C.x + D.x) / 4.0f, (A.y + B.y + C.y + D.y) / 4.0f, (A.z + B.z + C.z + D.z) / 4.0f);
         }
 
         //http://mathworld.wolfram.com/Circumsphere.html
@@ -143,6 +149,7 @@ public class Delaunay
         public Vector3 W { get; set; }
 
         public bool IsBad { get; set; }
+        public bool IsBoundary { get; set; }
 
         public Triangle(Vector3 u, Vector3 v, Vector3 w)
         {
@@ -185,61 +192,9 @@ public class Delaunay
 
     }
 
-    public class Edge
-    {
-        public Vector3 U { get; set; }
-        public Vector3 V { get; set; }
-
-        public bool IsBad { get; set; }
-
-        public Edge(Vector3 u, Vector3 v)
-        {
-            U = u;
-            V = v;
-        }
-
-        public static bool operator ==(Edge left, Edge right)
-        {
-            return (left.U == right.U || left.U == right.V)
-                && (left.V == right.U || left.V == right.V);
-        }
-
-        public static bool operator !=(Edge left, Edge right)
-        {
-            return !(left == right);
-        }
-
-        public override bool Equals(object obj)
-        {
-            if (obj is Edge e)
-            {
-                return this == e;
-            }
-
-            return false;
-        }
-
-        public bool Equals(Edge e)
-        {
-            return this == e;
-        }
-
-        public override int GetHashCode()
-        {
-            return U.GetHashCode() ^ V.GetHashCode();
-        }
-
-
-    }
-
     public static bool AlmostEqual(Vector3 left, Vector3 right)
     {
         return (left - right).sqrMagnitude < 0.01f;
-    }
-    public static bool AlmostEqual(Edge left, Edge right)
-    {
-        return (AlmostEqual(left.U, right.U) || AlmostEqual(left.V, right.U))
-            && (AlmostEqual(left.U, right.V) || AlmostEqual(left.V, right.U));
     }
     public static bool AlmostEqual(Triangle left, Triangle right)
     {
@@ -249,55 +204,52 @@ public class Delaunay
     }
 
     public List<Vector3> Vertices { get; private set; }
-    public List<Edge> Edges { get; private set; }
-    public List<Triangle> Triangles { get; private set; }
+
+    // initial mesh info
+    public Vector3[] meshVertices;
+    public int[] meshTriangles;
     public List<Tetrahedron> Tetrahedra { get; private set; }
     public Tetrahedron THETETRAHEDRON;
 
-    public Delaunay()
+    public Delaunay(List<Vector3> vertices, Vector3[] mv, int[] mt)
     {
-        Edges = new List<Edge>();
-        Triangles = new List<Triangle>();
-        Tetrahedra = new List<Tetrahedron>();
-        Vertices = new List<Vector3>();
-    }
-
-    public void Triangulate(List<Vector3> vertices)
-    {
-        Edges = new List<Edge>();
-        Triangles = new List<Triangle>();
         Tetrahedra = new List<Tetrahedron>();
         Vertices = new List<Vector3>(vertices);
+        meshVertices = mv;
+        meshTriangles = mt;
+    }
 
+    public void Triangulate()
+    {
         InitializeTheTetrahedron();
 
         // adding vertices 
-        foreach (var vertex in Vertices)
+        for (int i = 0; i < Vertices.Count; i++)
         {
             List<Triangle> triangles = new List<Triangle>();
 
-            // check every tetrahedron for the delauney rule
-            foreach (var t in Tetrahedra)
+            // check every tetrahedron for the delaunay rule
+            foreach (var tet in Tetrahedra)
             {
-                if (t.CircumCircleContains(vertex))
+                if (tet.CircumCircleContains(Vertices[i]))
                 {
-                    t.IsBad = true;
-                    triangles.Add(new Triangle(t.A, t.B, t.C));
-                    triangles.Add(new Triangle(t.A, t.B, t.D));
-                    triangles.Add(new Triangle(t.A, t.C, t.D));
-                    triangles.Add(new Triangle(t.B, t.C, t.D));
+                    tet.IsBad = true;
+                    triangles.Add(new Triangle(tet.A, tet.B, tet.C));
+                    triangles.Add(new Triangle(tet.A, tet.B, tet.D));
+                    triangles.Add(new Triangle(tet.A, tet.C, tet.D));
+                    triangles.Add(new Triangle(tet.B, tet.C, tet.D));
                 }
             }
 
-            // check if there are repetitions in triangles
-            for (int i = 0; i < triangles.Count; i++)
+            // check if there are repetitions in triangles (if an added vertice was in sphere of multiple tetrahedra, one triangle can be added multiple times)
+            for (int j = 0; j < triangles.Count; j++)
             {
-                for (int j = i + 1; j < triangles.Count; j++)
+                for (int k = j + 1; k< triangles.Count; k++)
                 {
-                    if (AlmostEqual(triangles[i], triangles[j]))
+                    if (AlmostEqual(triangles[j], triangles[k]))
                     {
-                        triangles[i].IsBad = true;
                         triangles[j].IsBad = true;
+                        triangles[k].IsBad = true;
                     }
                 }
             }
@@ -307,7 +259,7 @@ public class Delaunay
 
             foreach (var triangle in triangles)
             {
-                Tetrahedra.Add(new Tetrahedron(triangle.U, triangle.V, triangle.W, vertex));
+                Tetrahedra.Add(new Tetrahedron(triangle.U, triangle.V, triangle.W, Vertices[i]));
             }
         }
 
@@ -318,73 +270,14 @@ public class Delaunay
             || t.ContainsVertex(THETETRAHEDRON.C)
             || t.ContainsVertex(THETETRAHEDRON.D));
 
-        HashSet<Triangle> triangleSet = new HashSet<Triangle>();
-        HashSet<Edge> edgeSet = new HashSet<Edge>();
-
-        foreach (var t in Tetrahedra)
+        // clean up the extra tetrahedra that are generated for the non-convex meshes
+        foreach (var tet in Tetrahedra)
         {
-            var abc = new Triangle(t.A, t.B, t.C);
-            var abd = new Triangle(t.A, t.B, t.D);
-            var acd = new Triangle(t.A, t.C, t.D);
-            var bcd = new Triangle(t.B, t.C, t.D);
-
-            if (triangleSet.Add(abc))
-            {
-                Triangles.Add(abc);
-            }
-
-            if (triangleSet.Add(abd))
-            {
-                Triangles.Add(abd);
-            }
-
-            if (triangleSet.Add(acd))
-            {
-                Triangles.Add(acd);
-            }
-
-            if (triangleSet.Add(bcd))
-            {
-                Triangles.Add(bcd);
-            }
-
-            var ab = new Edge(t.A, t.B);
-            var bc = new Edge(t.B, t.C);
-            var ca = new Edge(t.C, t.A);
-            var da = new Edge(t.D, t.A);
-            var db = new Edge(t.D, t.B);
-            var dc = new Edge(t.D, t.C);
-
-            if (edgeSet.Add(ab))
-            {
-                Edges.Add(ab);
-            }
-
-            if (edgeSet.Add(bc))
-            {
-                Edges.Add(bc);
-            }
-
-            if (edgeSet.Add(ca))
-            {
-                Edges.Add(ca);
-            }
-
-            if (edgeSet.Add(da))
-            {
-                Edges.Add(da);
-            }
-
-            if (edgeSet.Add(db))
-            {
-                Edges.Add(db);
-            }
-
-            if (edgeSet.Add(dc))
-            {
-                Edges.Add(dc);
-            }
+            if (!IsInsideMesh(tet.Centroid))
+                tet.IsBad = true;
         }
+
+        Tetrahedra.RemoveAll((Tetrahedron t) => t.IsBad);
     }
 
     // initialization of a VERY huge tetrahedron that has all vertices included
@@ -419,5 +312,70 @@ public class Delaunay
 
         THETETRAHEDRON = new Tetrahedron(p1, p2, p3, p4);
         Tetrahedra.Add(THETETRAHEDRON);
+    }
+    public bool IsInsideMesh(Vector3 v)
+    {
+        // https://stackoverflow.com/questions/2049582/how-to-determine-if-a-point-is-in-a-2d-triangle
+        // taking projection of the mesh (ignoring the y coordinate)
+        // to get a small set of triangles right aboce and under the point
+        List<int> intersectingTriangles = new List<int>();
+        for (int i = 0; i < meshTriangles.Length; i += 3)
+        {
+            // getting triangle vertices
+            Vector3 p1 = meshVertices[meshTriangles[i]];
+            Vector3 p2 = meshVertices[meshTriangles[i + 1]];
+            Vector3 p3 = meshVertices[meshTriangles[i + 2]];
+
+            // check if point is inside the triangle in 2D
+            float d1, d2, d3;
+            bool has_neg, has_pos;
+
+            d1 = sign2D(v, p1, p2);
+            d2 = sign2D(v, p2, p3);
+            d3 = sign2D(v, p3, p1);
+
+            has_neg = (d1 < 0) || (d2 < 0) || (d3 < 0);
+            has_pos = (d1 > 0) || (d2 > 0) || (d3 > 0);
+
+            // add triangle to array
+            if (!(has_neg && has_pos))
+            {
+                intersectingTriangles.Add(i);
+                intersectingTriangles.Add(i + 1);
+                intersectingTriangles.Add(i + 2);
+            }
+        }
+
+        // check if there are no intersections
+        if (intersectingTriangles.Count == 0)
+            return false;
+
+        int countinside = 0;
+        int countoutside = 0;
+        // check the inside\outside mesh rule for the small set of the triangles 
+        for (int i = 0; i < intersectingTriangles.Count; i += 3)
+        {
+            // getting triangle vertices
+            Vector3 p1 = meshVertices[meshTriangles[intersectingTriangles[i]]];
+            Vector3 p2 = meshVertices[meshTriangles[intersectingTriangles[i + 1]]];
+            Vector3 p3 = meshVertices[meshTriangles[intersectingTriangles[i + 2]]];
+
+            float a00 = v.x - p1.x, a01 = v.y - p1.y, a02 = v.z - p1.z;
+            float a10 = p2.x - p1.x, a11 = p2.y - p1.y, a12 = p2.z - p1.z;
+            float a20 = p3.x - p1.x, a21 = p3.y - p1.y, a22 = p3.z - p1.z;
+
+            var det = a00 * a11 * a22 + a01 * a12 * a20 + a02 * a10 * a21 -
+                a02 * a11 * a20 - a01 * a10 * a22 - a00 * a12 * a21;
+            if (det > 0)
+                countoutside++;
+            else
+                countinside++;
+        }
+        return (countinside - countoutside) != 0;
+    }
+
+    float sign2D(Vector3 p1, Vector3 p2, Vector3 p3)
+    {
+        return (p1.x - p3.x) * (p2.z - p3.z) - (p2.x - p3.x) * (p1.z - p3.z);
     }
 }

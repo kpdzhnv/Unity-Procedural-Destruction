@@ -88,9 +88,12 @@ public class Destructible : MonoBehaviour
         if (debuggg)
         {
             // tetrahedralization
-            foreach (var e in voronoi.delaunay.Edges)
+            foreach (var t in voronoi.delaunay.Tetrahedra)
             {
-                Gizmos.DrawLine(e.U, e.V);
+                Gizmos.DrawLine(t.A, t.B);
+                Gizmos.DrawLine(t.B, t.C);
+                Gizmos.DrawLine(t.C, t.D);
+                Gizmos.DrawLine(t.D, t.A);
             }
             Gizmos.color = Color.red;
 
