@@ -303,9 +303,9 @@ public class Delaunay
         float dx = maxX - minX;
         float dy = maxY - minY;
         float dz = maxZ - minZ;
-        float deltaMax = Mathf.Max(dx, dy, dz) * 20; // 20 needs tests!!!!
+        float deltaMax = Mathf.Max(dx, dy, dz) * 20; 
 
-        Vector3 p1 = new Vector3(minX - 10, minY - 10, minZ - 10); // 10 needs tests !!!!!
+        Vector3 p1 = new Vector3(minX - 1, minY - 1, minZ - 1);
         Vector3 p2 = new Vector3(maxX + deltaMax, minY - 1, minZ - 1);
         Vector3 p3 = new Vector3(minX - 1, maxY + deltaMax, minZ - 1);
         Vector3 p4 = new Vector3(minX - 1, minY - 1, maxZ + deltaMax);
