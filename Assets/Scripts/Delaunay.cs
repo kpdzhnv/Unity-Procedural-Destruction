@@ -6,14 +6,14 @@ public class Delaunay
 {
     public class Triangle
     {
-        public Vector3 U { get; set; }
-        public Vector3 V { get; set; }
-        public Vector3 W { get; set; }
+        public int U { get; set; }
+        public int V { get; set; }
+        public int W { get; set; }
 
         public bool IsBad { get; set; }
         public bool IsBoundary { get; set; }
 
-        public Triangle(Vector3 u, Vector3 v, Vector3 w)
+        public Triangle(int u, int v, int w)
         {
             U = u;
             V = v;
@@ -56,70 +56,70 @@ public class Delaunay
 
     public class Tetrahedron : IEquatable<Tetrahedron>
     {
-        public Vector3 A { get; set; }
-        public Vector3 B { get; set; }
-        public Vector3 C { get; set; }
-        public Vector3 D { get; set; }
+        public int A { get; set; }
+        public int B { get; set; }
+        public int C { get; set; }
+        public int D { get; set; }
 
         public bool IsBad { get; set; }
 
         public Vector3 Circumcenter { get; set; }
         float CircumradiusSquared { get; set; }
 
-        public Tetrahedron(Vector3 a, Vector3 b, Vector3 c, Vector3 d)
+        public Tetrahedron(int a, int b, int c, int d, Vector3 v1, Vector3 v2, Vector3 v3, Vector3 v4)
         {
             A = a;
             B = b;
             C = c;
             D = d;
-            CalculateCircumsphere();
+            CalculateCircumsphere(v1, v2, v3, v4);
         }
-        public Vector3 GetCentroid ()
+        public Vector3 GetCentroid(Vector3 v1, Vector3 v2, Vector3 v3, Vector3 v4)
         {
-            return new Vector3((A.x + B.x + C.x + D.x) / 4.0f, (A.y + B.y + C.y + D.y) / 4.0f, (A.z + B.z + C.z + D.z) / 4.0f);
+            return new Vector3((v1.x + v2.x + v3.x + v4.x) / 4.0f, (v1.y + v2.y + v3.y + v4.y) / 4.0f, (v1.z + v2.z + v3.z + v4.z) / 4.0f);
         }
 
         //http://mathworld.wolfram.com/Circumsphere.html
-        void CalculateCircumsphere()
+        void CalculateCircumsphere(Vector3 v1, Vector3 v2, Vector3 v3, Vector3 v4)
         {
             float a = new Matrix4x4(
-                new Vector4(A.x, B.x, C.x, D.x),
-                new Vector4(A.y, B.y, C.y, D.y),
-                new Vector4(A.z, B.z, C.z, D.z),
+                new Vector4(v1.x, v2.x, v3.x, v4.x),
+                new Vector4(v1.y, v2.y, v3.y, v4.y),
+                new Vector4(v1.z, v2.z, v3.z, v4.z),
                 new Vector4(1, 1, 1, 1)
             ).determinant;
 
-            float aPosSqr = A.sqrMagnitude;
-            float bPosSqr = B.sqrMagnitude;
-            float cPosSqr = C.sqrMagnitude;
-            float dPosSqr = D.sqrMagnitude;
+            float aPosSqr = v1.sqrMagnitude;
+            float bPosSqr = v2.sqrMagnitude;
+            float cPosSqr = v3.sqrMagnitude;
+            float dPosSqr = v4.sqrMagnitude;
 
             float Dx = new Matrix4x4(
                 new Vector4(aPosSqr, bPosSqr, cPosSqr, dPosSqr),
-                new Vector4(A.y, B.y, C.y, D.y),
-                new Vector4(A.z, B.z, C.z, D.z),
+                new Vector4(v1.y, v2.y, v3.y, v4.y),
+                new Vector4(v1.z, v2.z, v3.z, v4.z),
                 new Vector4(1, 1, 1, 1)
             ).determinant;
 
             float Dy = -(new Matrix4x4(
                 new Vector4(aPosSqr, bPosSqr, cPosSqr, dPosSqr),
-                new Vector4(A.x, B.x, C.x, D.x),
-                new Vector4(A.z, B.z, C.z, D.z),
+                new Vector4(v1.x, v2.x, v3.x, v4.x),
+                new Vector4(v1.z, v2.z, v3.z, v4.z),
                 new Vector4(1, 1, 1, 1)
             ).determinant);
 
             float Dz = new Matrix4x4(
                 new Vector4(aPosSqr, bPosSqr, cPosSqr, dPosSqr),
-                new Vector4(A.x, B.x, C.x, D.x),
-                new Vector4(A.y, B.y, C.y, D.y),
+                new Vector4(v1.x, v2.x, v3.x, v4.x),
+                new Vector4(v1.y, v2.y, v3.y, v4.y),
                 new Vector4(1, 1, 1, 1)
             ).determinant;
 
             float c = new Matrix4x4(
                 new Vector4(aPosSqr, bPosSqr, cPosSqr, dPosSqr),
-                new Vector4(A.x, B.x, C.x, D.x),
-                new Vector4(A.y, B.y, C.y, D.y),
-                new Vector4(A.z, B.z, C.z, D.z)
+                new Vector4(v1.x, v2.x, v3.x, v4.x),
+                new Vector4(v1.y, v2.y, v3.y, v4.y),
+                new Vector4(v1.z, v2.z, v3.z, v4.z)
             ).determinant;
 
             Circumcenter = new Vector3(
@@ -131,29 +131,19 @@ public class Delaunay
             CircumradiusSquared = ((Dx * Dx) + (Dy * Dy) + (Dz * Dz) - (4 * a * c)) / (4 * a * a);
         }
 
-        public bool ContainsVertex(Vector3 v)
+        public bool ContainsVertex(int v)
         {
-            return AlmostEqual(v, A)
-                || AlmostEqual(v, B)
-                || AlmostEqual(v, C)
-                || AlmostEqual(v, D);
+            return v == A
+                || v == B
+                || v == C
+                || v == D;
         }
 
         public bool CircumCircleContains(Vector3 v)
         {
             Vector3 dist = v - Circumcenter;
             // a slight inaccuracy because there can be 90 degree angles and the circumradius is on the face !
-            return dist.sqrMagnitude <= CircumradiusSquared - 0.01f; 
-        }
-
-        public List<Vector3> GetVertices()
-        {
-            var l = new List<Vector3>(4);
-            l.Add(A);
-            l.Add(B);
-            l.Add(C);
-            l.Add(D);
-            return l;
+            return dist.sqrMagnitude <= CircumradiusSquared - 0.01f;
         }
 
         public static bool operator ==(Tetrahedron left, Tetrahedron right)
@@ -190,16 +180,16 @@ public class Delaunay
         }
     }
 
-    
+
     public static bool AlmostEqual(Vector3 left, Vector3 right)
     {
         return (left - right).sqrMagnitude < 0.01f;
     }
     public static bool AlmostEqual(Triangle left, Triangle right)
     {
-        return (AlmostEqual(left.U, right.U) || AlmostEqual(left.U, right.V) || AlmostEqual(left.U, right.W))
-            && (AlmostEqual(left.V, right.U) || AlmostEqual(left.V, right.V) || AlmostEqual(left.V, right.W))
-            && (AlmostEqual(left.W, right.U) || AlmostEqual(left.W, right.V) || AlmostEqual(left.W, right.W));
+        return (left.U == right.U || left.U == right.V || left.U == right.W)
+            && (left.V == right.U || left.V == right.V || left.V == right.W)
+            && (left.W == right.U || left.W == right.V || left.W == right.W);
     }
 
     public List<Vector3> Vertices { get; private set; }
@@ -243,7 +233,7 @@ public class Delaunay
             // check if there are repetitions in triangles (if an added vertice was in sphere of multiple tetrahedra, one triangle is added multiple times)
             for (int j = 0; j < triangles.Count; j++)
             {
-                for (int k = j + 1; k< triangles.Count; k++)
+                for (int k = j + 1; k < triangles.Count; k++)
                 {
                     if (AlmostEqual(triangles[j], triangles[k]))
                     {
@@ -258,21 +248,25 @@ public class Delaunay
 
             foreach (var triangle in triangles)
             {
-                Tetrahedra.Add(new Tetrahedron(triangle.U, triangle.V, triangle.W, Vertices[i]));
+                Tetrahedra.Add(new Tetrahedron(triangle.U, triangle.V, triangle.W, i, Vertices[triangle.U], Vertices[triangle.V], Vertices[triangle.W], Vertices[i]));
             }
         }
 
         // clean up the huge tetrahedron
-        Tetrahedra.RemoveAll((Tetrahedron t) => 
+        Tetrahedra.RemoveAll((Tetrahedron t) =>
             t.ContainsVertex(THETETRAHEDRON.A)
             || t.ContainsVertex(THETETRAHEDRON.B)
             || t.ContainsVertex(THETETRAHEDRON.C)
             || t.ContainsVertex(THETETRAHEDRON.D));
+        Vertices.RemoveAt(Vertices.Count - 1);
+        Vertices.RemoveAt(Vertices.Count - 1);
+        Vertices.RemoveAt(Vertices.Count - 1);
+        Vertices.RemoveAt(Vertices.Count - 1);
 
         // clean up the extra tetrahedra that are generated for the non-convex meshes
         foreach (var tet in Tetrahedra)
         {
-            if (!IsInsideMesh(tet.GetCentroid()))
+            if (!IsInsideMesh(tet.GetCentroid(Vertices[tet.A], Vertices[tet.B], Vertices[tet.C], Vertices[tet.D])))
                 tet.IsBad = true;
         }
 
@@ -302,14 +296,19 @@ public class Delaunay
         float dx = maxX - minX;
         float dy = maxY - minY;
         float dz = maxZ - minZ;
-        float deltaMax = Mathf.Max(dx, dy, dz) * 20; 
+        float deltaMax = Mathf.Max(dx, dy, dz) * 20;
 
         Vector3 p1 = new Vector3(minX - 1, minY - 1, minZ - 1);
         Vector3 p2 = new Vector3(maxX + deltaMax, minY - 1, minZ - 1);
         Vector3 p3 = new Vector3(minX - 1, maxY + deltaMax, minZ - 1);
         Vector3 p4 = new Vector3(minX - 1, minY - 1, maxZ + deltaMax);
 
-        THETETRAHEDRON = new Tetrahedron(p1, p2, p3, p4);
+        int ind = Vertices.Count;
+        Vertices.Add(p1);
+        Vertices.Add(p2);
+        Vertices.Add(p3);
+        Vertices.Add(p4);
+        THETETRAHEDRON = new Tetrahedron(ind, ind + 1, ind + 2, ind + 3, p1, p2, p3, p4);
         Tetrahedra.Add(THETETRAHEDRON);
     }
     public bool IsInsideMesh(Vector3 v)

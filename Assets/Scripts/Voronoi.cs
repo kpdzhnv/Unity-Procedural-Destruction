@@ -43,14 +43,15 @@ public class Voronoi
         delaunay.Triangulate();
 
         // each Delaunay vertice is a center of a corresponding Voronoi cell
-        foreach (var v in delaunay.Vertices)
+        // tho Delaunay adds 4 vertices, it removes it later, so the list does not change
+        for (int i = 0; i < vertices.Count; i++)
         {
             var points = new List<Vector3>();
             var tets = new List<Delaunay.Tetrahedron>();
 
             // get all the points for the cell using the duality of the Delaunay & Voronoi
             foreach (var t in delaunay.Tetrahedra)
-                if (t.ContainsVertex(v))
+                if (t.ContainsVertex(i))
                 {
                     // add the circumcenter
                     points.Add(t.Circumcenter);
@@ -63,7 +64,7 @@ public class Voronoi
             if (points.Count < 4)
                 continue;
 
-            VoronoiCell cell = new VoronoiCell(v, points);
+            VoronoiCell cell = new VoronoiCell(vertices[i], points);
 
             // after creating the basic cell, it needs to be cut with the faces of the initial mesh
              

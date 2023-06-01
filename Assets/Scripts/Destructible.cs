@@ -90,21 +90,22 @@ public class Destructible : MonoBehaviour
             // tetrahedralization
             foreach (var t in voronoi.delaunay.Tetrahedra)
             {
-                Gizmos.DrawLine(t.A, t.B);
-                Gizmos.DrawLine(t.B, t.C);
-                Gizmos.DrawLine(t.C, t.D);
-                Gizmos.DrawLine(t.D, t.A);
+                Gizmos.DrawLine(voronoi.vertices[t.A], voronoi.vertices[t.B]);
+                Gizmos.DrawLine(voronoi.vertices[t.B], voronoi.vertices[t.C]);
+                Gizmos.DrawLine(voronoi.vertices[t.C], voronoi.vertices[t.D]);
+                Gizmos.DrawLine(voronoi.vertices[t.D], voronoi.vertices[t.A]);
             }
             Gizmos.color = Color.red;
 
             // the big tetrahedron
 
-            Gizmos.DrawLine(voronoi.delaunay.THETETRAHEDRON.A, voronoi.delaunay.THETETRAHEDRON.B);
-            Gizmos.DrawLine(voronoi.delaunay.THETETRAHEDRON.A, voronoi.delaunay.THETETRAHEDRON.C);
-            Gizmos.DrawLine(voronoi.delaunay.THETETRAHEDRON.A, voronoi.delaunay.THETETRAHEDRON.D);
-            Gizmos.DrawLine(voronoi.delaunay.THETETRAHEDRON.B, voronoi.delaunay.THETETRAHEDRON.C);
-            Gizmos.DrawLine(voronoi.delaunay.THETETRAHEDRON.B, voronoi.delaunay.THETETRAHEDRON.D);
-            Gizmos.DrawLine(voronoi.delaunay.THETETRAHEDRON.C, voronoi.delaunay.THETETRAHEDRON.D);
+            // IT IS REMOVED!!!!!!!!!!!!!!!!
+            //Gizmos.DrawLine(voronoi.vertices[voronoi.delaunay.THETETRAHEDRON.A], voronoi.vertices[voronoi.delaunay.THETETRAHEDRON.B]);
+            //Gizmos.DrawLine(voronoi.vertices[voronoi.delaunay.THETETRAHEDRON.A], voronoi.vertices[voronoi.delaunay.THETETRAHEDRON.C]);
+            //Gizmos.DrawLine(voronoi.vertices[voronoi.delaunay.THETETRAHEDRON.A], voronoi.vertices[voronoi.delaunay.THETETRAHEDRON.D]);
+            //Gizmos.DrawLine(voronoi.vertices[voronoi.delaunay.THETETRAHEDRON.B], voronoi.vertices[voronoi.delaunay.THETETRAHEDRON.C]);
+            //Gizmos.DrawLine(voronoi.vertices[voronoi.delaunay.THETETRAHEDRON.B], voronoi.vertices[voronoi.delaunay.THETETRAHEDRON.D]);
+            //Gizmos.DrawLine(voronoi.vertices[voronoi.delaunay.THETETRAHEDRON.C], voronoi.vertices[voronoi.delaunay.THETETRAHEDRON.D]);
 
             // red - centers of the tetrahedra
             // blue - centers of the voronoi cells
@@ -115,8 +116,10 @@ public class Destructible : MonoBehaviour
                 Gizmos.DrawSphere(t.Circumcenter, 0.05f);
 
                 Gizmos.color = Color.blue;
-                foreach (var v in t.GetVertices())
-                    Gizmos.DrawSphere(v, 0.02f);
+                Gizmos.DrawSphere(voronoi.vertices[t.A], 0.02f);
+                Gizmos.DrawSphere(voronoi.vertices[t.B], 0.02f);
+                Gizmos.DrawSphere(voronoi.vertices[t.C], 0.02f);
+                Gizmos.DrawSphere(voronoi.vertices[t.D], 0.02f);
             }
 
             //Gizmos.color = Color.blue;
