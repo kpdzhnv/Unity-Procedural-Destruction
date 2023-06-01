@@ -4,6 +4,56 @@ using UnityEngine;
 
 public class Delaunay
 {
+    public class Triangle
+    {
+        public Vector3 U { get; set; }
+        public Vector3 V { get; set; }
+        public Vector3 W { get; set; }
+
+        public bool IsBad { get; set; }
+        public bool IsBoundary { get; set; }
+
+        public Triangle(Vector3 u, Vector3 v, Vector3 w)
+        {
+            U = u;
+            V = v;
+            W = w;
+        }
+
+        public static bool operator ==(Triangle left, Triangle right)
+        {
+            return (left.U == right.U || left.U == right.V || left.U == right.W)
+                && (left.V == right.U || left.V == right.V || left.V == right.W)
+                && (left.W == right.U || left.W == right.V || left.W == right.W);
+        }
+
+        public static bool operator !=(Triangle left, Triangle right)
+        {
+            return !(left == right);
+        }
+
+        public override bool Equals(object obj)
+        {
+            if (obj is Triangle e)
+            {
+                return this == e;
+            }
+
+            return false;
+        }
+
+        public bool Equals(Triangle e)
+        {
+            return this == e;
+        }
+
+        public override int GetHashCode()
+        {
+            return U.GetHashCode() ^ V.GetHashCode() ^ W.GetHashCode();
+        }
+
+    }
+
     public class Tetrahedron : IEquatable<Tetrahedron>
     {
         public Vector3 A { get; set; }
@@ -14,7 +64,6 @@ public class Delaunay
         public bool IsBad { get; set; }
 
         public Vector3 Circumcenter { get; set; }
-        public Vector3 Centroid { get; set; }
         float CircumradiusSquared { get; set; }
 
         public Tetrahedron(Vector3 a, Vector3 b, Vector3 c, Vector3 d)
@@ -24,11 +73,10 @@ public class Delaunay
             C = c;
             D = d;
             CalculateCircumsphere();
-            CalculateCentroid();
         }
-        void CalculateCentroid()
+        public Vector3 GetCentroid ()
         {
-            Centroid = new Vector3((A.x + B.x + C.x + D.x) / 4.0f, (A.y + B.y + C.y + D.y) / 4.0f, (A.z + B.z + C.z + D.z) / 4.0f);
+            return new Vector3((A.x + B.x + C.x + D.x) / 4.0f, (A.y + B.y + C.y + D.y) / 4.0f, (A.z + B.z + C.z + D.z) / 4.0f);
         }
 
         //http://mathworld.wolfram.com/Circumsphere.html
@@ -95,7 +143,7 @@ public class Delaunay
         {
             Vector3 dist = v - Circumcenter;
             // a slight inaccuracy because there can be 90 degree angles and the circumradius is on the face !
-            return dist.sqrMagnitude <= CircumradiusSquared - 0.1f; 
+            return dist.sqrMagnitude <= CircumradiusSquared - 0.01f; 
         }
 
         public List<Vector3> GetVertices()
@@ -142,56 +190,7 @@ public class Delaunay
         }
     }
 
-    public class Triangle
-    {
-        public Vector3 U { get; set; }
-        public Vector3 V { get; set; }
-        public Vector3 W { get; set; }
-
-        public bool IsBad { get; set; }
-        public bool IsBoundary { get; set; }
-
-        public Triangle(Vector3 u, Vector3 v, Vector3 w)
-        {
-            U = u;
-            V = v;
-            W = w;
-        }
-
-        public static bool operator ==(Triangle left, Triangle right)
-        {
-            return (left.U == right.U || left.U == right.V || left.U == right.W)
-                && (left.V == right.U || left.V == right.V || left.V == right.W)
-                && (left.W == right.U || left.W == right.V || left.W == right.W);
-        }
-
-        public static bool operator !=(Triangle left, Triangle right)
-        {
-            return !(left == right);
-        }
-
-        public override bool Equals(object obj)
-        {
-            if (obj is Triangle e)
-            {
-                return this == e;
-            }
-
-            return false;
-        }
-
-        public bool Equals(Triangle e)
-        {
-            return this == e;
-        }
-
-        public override int GetHashCode()
-        {
-            return U.GetHashCode() ^ V.GetHashCode() ^ W.GetHashCode();
-        }
-
-    }
-
+    
     public static bool AlmostEqual(Vector3 left, Vector3 right)
     {
         return (left - right).sqrMagnitude < 0.01f;
@@ -241,7 +240,7 @@ public class Delaunay
                 }
             }
 
-            // check if there are repetitions in triangles (if an added vertice was in sphere of multiple tetrahedra, one triangle can be added multiple times)
+            // check if there are repetitions in triangles (if an added vertice was in sphere of multiple tetrahedra, one triangle is added multiple times)
             for (int j = 0; j < triangles.Count; j++)
             {
                 for (int k = j + 1; k< triangles.Count; k++)
@@ -273,7 +272,7 @@ public class Delaunay
         // clean up the extra tetrahedra that are generated for the non-convex meshes
         foreach (var tet in Tetrahedra)
         {
-            if (!IsInsideMesh(tet.Centroid))
+            if (!IsInsideMesh(tet.GetCentroid()))
                 tet.IsBad = true;
         }
 
