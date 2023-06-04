@@ -48,13 +48,6 @@ public class NewBehaviourScript : MonoBehaviour
 
             //part.AddComponent<Rigidbody>();
         }
-
-            for (int i = 0; i < cell.triangles.Count ; i += 3)
-        {
-            Debug.DrawLine(cell.vertices[cell.triangles[i]], cell.vertices[cell.triangles[i + 1]], Color.cyan);
-            Debug.DrawLine(cell.vertices[cell.triangles[i + 1]], cell.vertices[cell.triangles[i + 2]], Color.cyan);
-            Debug.DrawLine(cell.vertices[cell.triangles[i + 2]], cell.vertices[cell.triangles[i]], Color.cyan);
-        }
     }
 
     public void GenerateVertices()

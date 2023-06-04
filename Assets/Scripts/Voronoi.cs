@@ -7,7 +7,7 @@ public class Voronoi
     // class that generates Delaunay
     public Delaunay delaunay;
     // amount of points to be generated inside the mesh
-    public int insidePointsCount = 5;
+    public int insidePointsCount = 1;
     // amount of points of the initial mesh
     public int boundaryPointsCount;
     // bounding box, that is used for an efficient points generation
@@ -55,7 +55,6 @@ public class Voronoi
                 {
                     // add the circumcenter
                     points.Add(t.Circumcenter);
-
                     if (t.aIsBorder || t.bIsBorder || t.cIsBorder || t.dIsBorder )
                         // add the tetrahedra to later calculate the intersection
                         tets.Add(t);
@@ -85,10 +84,10 @@ public class Voronoi
     public void GenerateVertices()
     {
         // add initial mesh vertices 
-        foreach (var p in meshVertices)
+        foreach (var v in meshVertices)
         {
-            if (!vertices.Contains(p))
-                vertices.Add(p);
+            if (!vertices.Contains(v))
+                vertices.Add(v);
         }
 
         int pointcount = 0;

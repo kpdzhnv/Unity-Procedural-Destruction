@@ -30,6 +30,7 @@ public class VoronoiCell
             p2 = p3;
             p3 = t;
         }
+        Vector3 planeNormal = Vector3.Cross(p2 - p1, p3 - p1);
         var newVertices = new List<Vector3>(); 
         var newTriangles = new List<int>();
         var planeTriangles = new List<int>();
@@ -46,47 +47,24 @@ public class VoronoiCell
             // if all vertices are outside
             if (v1Out && v2Out && v3Out)
             {
-                Debug.DrawLine(v1, v2, Color.cyan);
-                Debug.DrawLine(v1, v3, Color.cyan);
-                Debug.DrawLine(v2, v3, Color.cyan);
                 continue;
             }
             // if all vertices are inside
             else if (!v1Out && !v2Out && !v3Out)
             {
-                Debug.DrawLine(v1, v2, Color.red);
-                Debug.DrawLine(v1, v3, Color.red);
-                Debug.DrawLine(v2, v3, Color.red);
-                // if vertice is already in new Vertices, do not add it
-                int tri1Index = newVertices.IndexOf(v1);
-                if (tri1Index > -1)
-                    newTriangles.Add(tri1Index);
-                else
-                {
-                    newVertices.Add(v1);
-                    newNormals.Add(normals[triangles[i]]);
-                    newTriangles.Add(newVertices.Count - 1);
-                }
 
-                int tri2Index = newVertices.IndexOf(v2);
-                if (tri2Index > -1)
-                    newTriangles.Add(tri2Index);
-                else
-                {
-                    newVertices.Add(v2);
-                    newNormals.Add(normals[triangles[i + 1]]);
-                    newTriangles.Add(newVertices.Count - 1);
-                }
+                newVertices.Add(v1);
+                newNormals.Add(normals[triangles[i]]);
+                newTriangles.Add(newVertices.Count - 1);
+                
+                newVertices.Add(v2);
+                newNormals.Add(normals[triangles[i + 1]]);
+                newTriangles.Add(newVertices.Count - 1);
 
-                int tri3Index = newVertices.IndexOf(v3);
-                if (tri3Index > -1)
-                    newTriangles.Add(tri3Index);
-                else
-                {
-                    newVertices.Add(v3);
-                    newNormals.Add(normals[triangles[i + 2]]);
-                    newTriangles.Add(newVertices.Count - 1);
-                }
+                newVertices.Add(v3);
+                newNormals.Add(normals[triangles[i + 2]]);
+                newTriangles.Add(newVertices.Count - 1);
+                
                 // yes I am sorry for this, but there are to many "if"s. I hope its temporary
                 continue;
             }
@@ -160,42 +138,25 @@ public class VoronoiCell
                         v1.z + (v3.z - v1.z) * t);
 
                     // add v1
-                    int v1Index = newVertices.IndexOf(v1);
-                    if (v1Index > -1)
-                        newTriangles.Add(v1Index);
-                    else
-                    {
-                        newVertices.Add(v1);
-                        newNormals.Add(Vector3.Cross(intersection1 - v1, intersection2 - v1));
-                        newTriangles.Add(newVertices.Count - 1);
-                    }
+                    newVertices.Add(v1);
+                    newNormals.Add(Vector3.Cross(intersection1 - v1, intersection2 - v1));
+                    newTriangles.Add(newVertices.Count - 1);
+
                     // add intersection1 and intersection2
-                    int i1Index = newVertices.IndexOf(intersection1);
-                    if (i1Index > -1)
-                    {
-                        newTriangles.Add(i1Index);
-                        planeTriangles.Add(i1Index);
-                    }
-                    else
-                    {
-                        newVertices.Add(intersection1);
-                        newNormals.Add(Vector3.Cross(intersection2 - intersection1, v1 - intersection1));
-                        newTriangles.Add(newVertices.Count - 1);
-                        planeTriangles.Add(newVertices.Count - 1);
-                    }
-                    int i2Index = newVertices.IndexOf(intersection2);
-                    if (i2Index > -1)
-                    {
-                        newTriangles.Add(i2Index);
-                        planeTriangles.Add(i2Index);
-                    }
-                    else
-                    {
-                        newVertices.Add(intersection2);
-                        newNormals.Add(Vector3.Cross(v1 - intersection2, intersection1 - intersection2));
-                        newTriangles.Add(newVertices.Count - 1);
-                        planeTriangles.Add(newVertices.Count - 1);
-                    }
+                    newVertices.Add(intersection1);
+                    newNormals.Add(Vector3.Cross(intersection2 - intersection1, v1 - intersection1));
+                    newTriangles.Add(newVertices.Count - 1);
+                    newVertices.Add(intersection1);
+                    newNormals.Add(planeNormal);
+                    planeTriangles.Add(newVertices.Count - 1);
+
+                    newVertices.Add(intersection2);
+                    newNormals.Add(Vector3.Cross(v1 - intersection2, intersection1 - intersection2));
+                    newTriangles.Add(newVertices.Count - 1);
+                    newVertices.Add(intersection2);
+                    newNormals.Add(planeNormal);
+                    planeTriangles.Add(newVertices.Count - 1);
+
                     continue;
                 }
 
@@ -270,64 +231,47 @@ public class VoronoiCell
                         v3.z + (v2.z - v3.z) * t);
 
                     // add v1 and v1->i1->i2 triangle
-                    int v1Index = newVertices.IndexOf(v1);
-                    if (v1Index > -1)
-                        newTriangles.Add(v1Index);
-                    else
-                    {
-                        newVertices.Add(v1);
-                        newNormals.Add(Vector3.Cross(intersection1 - v1, intersection2 - v1));
-                        newTriangles.Add(newVertices.Count - 1);
-                    }
+                    newVertices.Add(v1);
+                    newNormals.Add(Vector3.Cross(intersection1 - v1, intersection2 - v1));
+                    newTriangles.Add(newVertices.Count - 1);
+                    
                     // add intersection1 and intersection2
-                    int i1Index = newVertices.IndexOf(intersection1);
-                    if (i1Index > -1)
-                    {
-                        newTriangles.Add(i1Index);
-                        planeTriangles.Add(i1Index);
-                    }
-                    else
-                    {
-                        newVertices.Add(intersection1);
-                        newNormals.Add(Vector3.Cross(intersection2 - intersection1, v1 - intersection1));
-                        newTriangles.Add(newVertices.Count - 1);
-                        planeTriangles.Add(newVertices.Count - 1);
-                    }
-                    int i2Index = newVertices.IndexOf(intersection2);
-                    if (i2Index > -1)
-                    {
-                        newTriangles.Add(i2Index);
-                        planeTriangles.Add(i2Index);
-                    }
-                    else
-                    {
-                        newVertices.Add(intersection2);
-                        newNormals.Add(Vector3.Cross(v1 - intersection2, intersection1 - intersection2));
-                        newTriangles.Add(newVertices.Count - 1);
-                        planeTriangles.Add(newVertices.Count - 1);
-                    }
+                    newVertices.Add(intersection1);
+                    newNormals.Add(Vector3.Cross(intersection2 - intersection1, v1 - intersection1));
+                    newTriangles.Add(newVertices.Count - 1);
+                    newVertices.Add(intersection1);
+                    newNormals.Add(planeNormal);
+                    planeTriangles.Add(newVertices.Count - 1);
+
+                    newVertices.Add(intersection2);
+                    newNormals.Add(Vector3.Cross(v1 - intersection2, intersection1 - intersection2));
+                    newTriangles.Add(newVertices.Count - 1);
+                    newVertices.Add(intersection2);
+                    newNormals.Add(planeNormal);
+                    planeTriangles.Add(newVertices.Count - 1);
 
                     // add v3 and v3->v1->i2 triangle
-                    int v3Index = newVertices.IndexOf(v3);
-                    if (v3Index > -1)
-                        newTriangles.Add(v3Index);
-                    else
-                    {
-                        newVertices.Add(v3);
-                        newNormals.Add(Vector3.Cross(intersection1 - v1, intersection2 - v1));
-                        newTriangles.Add(newVertices.Count - 1);
-                    }
-                    newTriangles.Add(newVertices.IndexOf(v1));
-                    newTriangles.Add(newVertices.IndexOf(intersection2));
+                    newVertices.Add(v3);
+                    newNormals.Add(Vector3.Cross(intersection1 - v1, intersection2 - v1));
+                    newTriangles.Add(newVertices.Count - 1);
+
+                    newVertices.Add(v1);
+                    newNormals.Add(Vector3.Cross(intersection1 - v1, intersection2 - v1));
+                    newTriangles.Add(newVertices.Count - 1);
+
+                    newVertices.Add(intersection2);
+                    newNormals.Add(Vector3.Cross(v3 - intersection2, v1 - intersection2));
+                    newTriangles.Add(newVertices.Count - 1);
                 }
             }
         }
         Vector3 planeCenter = new Vector3(0,0,0);
         for (int i = 0; i < planeTriangles.Count; i+= 2)
             planeCenter += newVertices[planeTriangles[i]];
+
         planeCenter /= (planeTriangles.Count / 2);
         newVertices.Add(planeCenter);
-        newNormals.Add(Vector3.Cross(p2 - p1, p3 - p1));
+        newNormals.Add(planeNormal);
         for (int i = 0; i < planeTriangles.Count; i += 2)
         {
             newTriangles.Add(planeTriangles[i]);
@@ -338,13 +282,7 @@ public class VoronoiCell
         vertices = newVertices;
         triangles = newTriangles;
         normals = newNormals;
-
-
         Debug.Log(vertices.Count);
-        for (int i = 0; i < vertices.Count; i++)
-        {
-            Debug.Log(vertices[i]);
-        }
     }
 
     private bool isOutside(Vector3 v, Vector3 p1, Vector3 p2, Vector3 p3)

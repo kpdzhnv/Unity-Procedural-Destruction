@@ -269,22 +269,17 @@ public class Delaunay
         // find all the tetrahedra that contain initial faces
         foreach (var tet in Tetrahedra)
         {
+            Debug.Log($"{tet.A}, {tet.B}, {tet.C}, {tet.D}");
             if (tet.A < meshVerticesCount && tet.B < meshVerticesCount && tet.C < meshVerticesCount)
             {
                 for (int i = 0; i < meshTriangles.Length; i += 3)
                 {
                     if (tet.A == i && tet.B == i + 1 && tet.C == i + 2 ||
+                        tet.A == i && tet.C == i + 1 && tet.B == i + 2 ||
                         tet.B == i && tet.C == i + 1 && tet.A == i + 2 ||
-                        tet.C == i && tet.A == i + 1 && tet.B == i + 2)
-                    {
-                        // default value
-                        // tet.clockwise = true;
-                        tet.dIsBorder = true;
-                        break;
-                    }
-                    else if (tet.C == i && tet.B == i + 1 && tet.A == i + 2 ||
                         tet.B == i && tet.A == i + 1 && tet.C == i + 2 ||
-                        tet.A == i && tet.C == i + 1 && tet.B == i + 2)
+                        tet.C == i && tet.A == i + 1 && tet.B == i + 2 ||
+                        tet.C == i && tet.B == i + 1 && tet.A == i + 2 )
                     {
                         tet.dIsBorder = true;
                         break;
@@ -298,15 +293,11 @@ public class Delaunay
                 for (int i = 0; i < meshTriangles.Length; i += 3)
                 {
                     if (tet.A == i && tet.B == i + 1 && tet.D == i + 2 ||
-                        tet.B == i && tet.D == i + 1 && tet.A == i + 2 ||
-                        tet.D == i && tet.A == i + 1 && tet.B == i + 2)
-                    {
-                        tet.cIsBorder = true;
-                        break;
-                    }
-                    else if (tet.D == i && tet.B == i + 1 && tet.A == i + 2 ||
+                        tet.A == i && tet.D == i + 1 && tet.B == i + 2 ||
                         tet.B == i && tet.A == i + 1 && tet.D == i + 2 ||
-                        tet.A == i && tet.D == i + 1 && tet.B == i + 2)
+                        tet.B == i && tet.D == i + 1 && tet.A == i + 2 ||
+                        tet.D == i && tet.A == i + 1 && tet.B == i + 2 ||
+                        tet.D == i && tet.B == i + 1 && tet.A == i + 2)
                     {
                         tet.cIsBorder = true;
                         break;
@@ -320,17 +311,11 @@ public class Delaunay
                 for (int i = 0; i < meshTriangles.Length; i += 3)
                 {
                     if (tet.A == i && tet.C == i + 1 && tet.D == i + 2 ||
+                        tet.A == i && tet.D == i + 1 && tet.C == i + 2 ||
                         tet.C == i && tet.D == i + 1 && tet.A == i + 2 ||
-                        tet.D == i && tet.A == i + 1 && tet.C == i + 2)
-                    {
-                        // default value
-                        // tet.clockwise = true;
-                        tet.bIsBorder = true;
-                        break;
-                    }
-                    else if (tet.D == i && tet.C == i + 1 && tet.A == i + 2 ||
                         tet.C == i && tet.A == i + 1 && tet.D == i + 2 ||
-                        tet.A == i && tet.D == i + 1 && tet.C == i + 2)
+                        tet.D == i && tet.A == i + 1 && tet.C == i + 2 ||
+                        tet.D == i && tet.C == i + 1 && tet.A == i + 2)
                     {
                         tet.bIsBorder = true;
                         break;
@@ -344,17 +329,11 @@ public class Delaunay
                 for (int i = 0; i < meshTriangles.Length; i += 3)
                 {
                     if (tet.B == i && tet.C == i + 1 && tet.D == i + 2 ||
-                        tet.C == i && tet.D == i + 1 && tet.B == i + 2 ||
-                        tet.D == i && tet.B == i + 1 && tet.C == i + 2)
-                    {
-                        // default value
-                        // tet.clockwise = true;
-                        tet.aIsBorder = true;
-                        break;
-                    }
-                    else if (tet.D == i && tet.C == i + 1 && tet.B == i + 2 ||
+                        tet.B == i && tet.D == i + 1 && tet.C == i + 2 ||
                         tet.C == i && tet.B == i + 1 && tet.D == i + 2 ||
-                        tet.B == i && tet.D == i + 1 && tet.C == i + 2)
+                        tet.C == i && tet.D == i + 1 && tet.B == i + 2 ||
+                        tet.D == i && tet.B == i + 1 && tet.C == i + 2 ||
+                        tet.D == i && tet.C == i + 1 && tet.B == i + 2)
                     {
                         tet.aIsBorder = true;
                         break;
