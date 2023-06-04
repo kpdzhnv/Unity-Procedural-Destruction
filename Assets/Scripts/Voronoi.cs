@@ -56,7 +56,7 @@ public class Voronoi
                     // add the circumcenter
                     points.Add(t.Circumcenter);
 
-                    if (!IsInsideMesh(t.Circumcenter))
+                    if (t.aIsBorder || t.bIsBorder || t.cIsBorder || t.dIsBorder )
                         // add the tetrahedra to later calculate the intersection
                         tets.Add(t);
                 }
@@ -67,7 +67,17 @@ public class Voronoi
             VoronoiCell cell = new VoronoiCell(vertices[i], points);
 
             // after creating the basic cell, it needs to be cut with the faces of the initial mesh
-             
+            foreach (var tet in tets)
+            {
+                if (tet.aIsBorder)
+                    cell.CutWithPlane(vertices[tet.B], vertices[tet.C], vertices[tet.D]);
+                if (tet.bIsBorder)
+                    cell.CutWithPlane(vertices[tet.C], vertices[tet.D], vertices[tet.A]);
+                if (tet.cIsBorder)
+                    cell.CutWithPlane(vertices[tet.D], vertices[tet.A], vertices[tet.B]);
+                if (tet.dIsBorder)
+                    cell.CutWithPlane(vertices[tet.A], vertices[tet.B], vertices[tet.C]);
+            }
             cells.Add(cell);
         }
     }

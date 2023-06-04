@@ -6,25 +6,25 @@ public class Delaunay
 {
     public class Triangle
     {
-        public int U { get; set; }
-        public int V { get; set; }
-        public int W { get; set; }
+        public int A { get; set; }
+        public int B { get; set; }
+        public int C { get; set; }
 
         public bool IsBad { get; set; }
         public bool IsBoundary { get; set; }
 
         public Triangle(int u, int v, int w)
         {
-            U = u;
-            V = v;
-            W = w;
+            A = u;
+            B = v;
+            C = w;
         }
 
         public static bool operator ==(Triangle left, Triangle right)
         {
-            return (left.U == right.U || left.U == right.V || left.U == right.W)
-                && (left.V == right.U || left.V == right.V || left.V == right.W)
-                && (left.W == right.U || left.W == right.V || left.W == right.W);
+            return (left.A == right.A || left.A == right.B || left.A == right.C)
+                && (left.B == right.A || left.B == right.B || left.B == right.C)
+                && (left.C == right.A || left.C == right.B || left.C == right.C);
         }
 
         public static bool operator !=(Triangle left, Triangle right)
@@ -49,7 +49,7 @@ public class Delaunay
 
         public override int GetHashCode()
         {
-            return U.GetHashCode() ^ V.GetHashCode() ^ W.GetHashCode();
+            return A.GetHashCode() ^ B.GetHashCode() ^ C.GetHashCode();
         }
 
     }
@@ -60,6 +60,12 @@ public class Delaunay
         public int B { get; set; }
         public int C { get; set; }
         public int D { get; set; }
+        public bool aIsBorder;
+        public bool bIsBorder;
+        public bool cIsBorder;
+        public bool dIsBorder;
+
+        public bool clockwise { get; set; }
 
         public bool IsBad { get; set; }
 
@@ -72,6 +78,11 @@ public class Delaunay
             B = b;
             C = c;
             D = d;
+            aIsBorder = false;
+            bIsBorder = false;
+            cIsBorder = false;
+            dIsBorder = false;
+            clockwise = true;
             CalculateCircumsphere(v1, v2, v3, v4);
         }
         public Vector3 GetCentroid(Vector3 v1, Vector3 v2, Vector3 v3, Vector3 v4)
@@ -80,6 +91,7 @@ public class Delaunay
         }
 
         //http://mathworld.wolfram.com/Circumsphere.html
+        // yes, I am sorry for this, please pass the vertices to this method
         void CalculateCircumsphere(Vector3 v1, Vector3 v2, Vector3 v3, Vector3 v4)
         {
             float a = new Matrix4x4(
@@ -187,15 +199,16 @@ public class Delaunay
     }
     public static bool AlmostEqual(Triangle left, Triangle right)
     {
-        return (left.U == right.U || left.U == right.V || left.U == right.W)
-            && (left.V == right.U || left.V == right.V || left.V == right.W)
-            && (left.W == right.U || left.W == right.V || left.W == right.W);
+        return (left.A == right.A || left.A == right.B || left.A == right.C)
+            && (left.B == right.A || left.B == right.B || left.B == right.C)
+            && (left.C == right.A || left.C == right.B || left.C == right.C);
     }
 
     public List<Vector3> Vertices { get; private set; }
 
     // initial mesh info
     public Vector3[] meshVertices;
+    int meshVerticesCount;
     public int[] meshTriangles;
     public List<Tetrahedron> Tetrahedra { get; private set; }
     public Tetrahedron THETETRAHEDRON;
@@ -206,6 +219,7 @@ public class Delaunay
         Vertices = new List<Vector3>(vertices);
         meshVertices = mv;
         meshTriangles = mt;
+        meshVerticesCount = mv.Length;
     }
 
     public void Triangulate()
@@ -232,7 +246,6 @@ public class Delaunay
 
             // check if there are repetitions in triangles (if an added vertice was in sphere of multiple tetrahedra, one triangle is added multiple times)
             for (int j = 0; j < triangles.Count; j++)
-            {
                 for (int k = j + 1; k < triangles.Count; k++)
                 {
                     if (AlmostEqual(triangles[j], triangles[k]))
@@ -241,27 +254,130 @@ public class Delaunay
                         triangles[k].IsBad = true;
                     }
                 }
-            }
 
             Tetrahedra.RemoveAll((Tetrahedron t) => t.IsBad);
             triangles.RemoveAll((Triangle t) => t.IsBad);
 
             foreach (var triangle in triangles)
             {
-                Tetrahedra.Add(new Tetrahedron(triangle.U, triangle.V, triangle.W, i, Vertices[triangle.U], Vertices[triangle.V], Vertices[triangle.W], Vertices[i]));
+                var tet = new Tetrahedron(triangle.A, triangle.B, triangle.C, i, Vertices[triangle.A], Vertices[triangle.B], Vertices[triangle.C], Vertices[i]);
+                Tetrahedra.Add(tet);
             }
         }
 
-        // clean up the huge tetrahedron
-        Tetrahedra.RemoveAll((Tetrahedron t) =>
-            t.ContainsVertex(THETETRAHEDRON.A)
-            || t.ContainsVertex(THETETRAHEDRON.B)
-            || t.ContainsVertex(THETETRAHEDRON.C)
-            || t.ContainsVertex(THETETRAHEDRON.D));
-        Vertices.RemoveAt(Vertices.Count - 1);
-        Vertices.RemoveAt(Vertices.Count - 1);
-        Vertices.RemoveAt(Vertices.Count - 1);
-        Vertices.RemoveAt(Vertices.Count - 1);
+        RemoveTheTetrahedron();
+
+        var tetsToFLip = new List<Tetrahedron>();
+
+        // find all the tetrahedra that contain initial faces
+        foreach (var tet in Tetrahedra)
+        {
+            if (tet.A < meshVerticesCount && tet.B < meshVerticesCount && tet.C < meshVerticesCount)
+            {
+                for (int i = 0; i < meshTriangles.Length; i += 3)
+                {
+                    if (tet.A == i && tet.B == i + 1 && tet.C == i + 2 ||
+                        tet.B == i && tet.C == i + 1 && tet.A == i + 2 ||
+                        tet.C == i && tet.A == i + 1 && tet.B == i + 2)
+                    {
+                        // default value
+                        // tet.clockwise = true;
+                        tet.dIsBorder = true;
+                        break;
+                    }
+                    else if (tet.C == i && tet.B == i + 1 && tet.A == i + 2 ||
+                        tet.B == i && tet.A == i + 1 && tet.C == i + 2 ||
+                        tet.A == i && tet.C == i + 1 && tet.B == i + 2)
+                    {
+                        tet.clockwise = false;
+                        tet.dIsBorder = true;
+                        break;
+                    }
+                    else
+                        tetsToFLip.Add(tet);
+                }
+            }
+            if (tet.A < meshVerticesCount && tet.B < meshVerticesCount && tet.D < meshVerticesCount)
+            {
+                for (int i = 0; i < meshTriangles.Length; i += 3)
+                {
+                    if (tet.A == i && tet.B == i + 1 && tet.D == i + 2 ||
+                        tet.B == i && tet.D == i + 1 && tet.A == i + 2 ||
+                        tet.D == i && tet.A == i + 1 && tet.B == i + 2)
+                    {
+                        // default value
+                        // tet.clockwise = true;
+                        tet.cIsBorder = true;
+                        break;
+                    }
+                    else if (tet.D == i && tet.B == i + 1 && tet.A == i + 2 ||
+                        tet.B == i && tet.A == i + 1 && tet.D == i + 2 ||
+                        tet.A == i && tet.D == i + 1 && tet.B == i + 2)
+                    {
+                        tet.clockwise = false;
+                        tet.cIsBorder = true;
+                        break;
+                    }
+                    else
+                        tetsToFLip.Add(tet);
+                }
+            }
+            if (tet.A < meshVerticesCount && tet.C < meshVerticesCount && tet.D < meshVerticesCount)
+            {
+                for (int i = 0; i < meshTriangles.Length; i += 3)
+                {
+                    if (tet.A == i && tet.C == i + 1 && tet.D == i + 2 ||
+                        tet.C == i && tet.D == i + 1 && tet.A == i + 2 ||
+                        tet.D == i && tet.A == i + 1 && tet.C == i + 2)
+                    {
+                        // default value
+                        // tet.clockwise = true;
+                        tet.bIsBorder = true;
+                        break;
+                    }
+                    else if (tet.D == i && tet.C == i + 1 && tet.A == i + 2 ||
+                        tet.C == i && tet.A == i + 1 && tet.D == i + 2 ||
+                        tet.A == i && tet.D == i + 1 && tet.C == i + 2)
+                    {
+                        tet.clockwise = false;
+                        tet.bIsBorder = true;
+                        break;
+                    }
+                    else
+                        tetsToFLip.Add(tet);
+                }
+            }
+            if (tet.B < meshVerticesCount && tet.C < meshVerticesCount && tet.D < meshVerticesCount)
+            {
+                for (int i = 0; i < meshTriangles.Length; i += 3)
+                {
+                    if (tet.B == i && tet.C == i + 1 && tet.D == i + 2 ||
+                        tet.C == i && tet.D == i + 1 && tet.B == i + 2 ||
+                        tet.D == i && tet.B == i + 1 && tet.C == i + 2)
+                    {
+                        // default value
+                        // tet.clockwise = true;
+                        tet.aIsBorder = true;
+                        break;
+                    }
+                    else if (tet.D == i && tet.C == i + 1 && tet.B == i + 2 ||
+                        tet.C == i && tet.B == i + 1 && tet.D == i + 2 ||
+                        tet.B == i && tet.D == i + 1 && tet.C == i + 2)
+                    {
+                        tet.clockwise = false;
+                        tet.aIsBorder = true;
+                        break;
+                    }
+                    else
+                        tetsToFLip.Add(tet);
+                }
+            }
+        }
+        // flip tets
+        //while (tetsToFLip.Count > 0)
+        //{
+        //    // yes...
+        //}
 
         // clean up the extra tetrahedra that are generated for the non-convex meshes
         foreach (var tet in Tetrahedra)
@@ -269,7 +385,6 @@ public class Delaunay
             if (!IsInsideMesh(tet.GetCentroid(Vertices[tet.A], Vertices[tet.B], Vertices[tet.C], Vertices[tet.D])))
                 tet.IsBad = true;
         }
-
         Tetrahedra.RemoveAll((Tetrahedron t) => t.IsBad);
     }
 
@@ -311,6 +426,23 @@ public class Delaunay
         THETETRAHEDRON = new Tetrahedron(ind, ind + 1, ind + 2, ind + 3, p1, p2, p3, p4);
         Tetrahedra.Add(THETETRAHEDRON);
     }
+
+    // cleanup of a VERY huge tetrahedron that has all vertices included
+    private void RemoveTheTetrahedron()
+    {
+        // clean up the huge tetrahedron
+        Tetrahedra.RemoveAll((Tetrahedron t) =>
+            t.ContainsVertex(THETETRAHEDRON.A)
+            || t.ContainsVertex(THETETRAHEDRON.B)
+            || t.ContainsVertex(THETETRAHEDRON.C)
+            || t.ContainsVertex(THETETRAHEDRON.D));
+        Vertices.RemoveAt(Vertices.Count - 1);
+        Vertices.RemoveAt(Vertices.Count - 1);
+        Vertices.RemoveAt(Vertices.Count - 1);
+        Vertices.RemoveAt(Vertices.Count - 1);
+
+    }
+
     public bool IsInsideMesh(Vector3 v)
     {
         // https://stackoverflow.com/questions/2049582/how-to-determine-if-a-point-is-in-a-2d-triangle
