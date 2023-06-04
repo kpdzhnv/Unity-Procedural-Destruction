@@ -65,8 +65,6 @@ public class Delaunay
         public bool cIsBorder;
         public bool dIsBorder;
 
-        public bool clockwise { get; set; }
-
         public bool IsBad { get; set; }
 
         public Vector3 Circumcenter { get; set; }
@@ -82,7 +80,6 @@ public class Delaunay
             bIsBorder = false;
             cIsBorder = false;
             dIsBorder = false;
-            clockwise = true;
             CalculateCircumsphere(v1, v2, v3, v4);
         }
         public Vector3 GetCentroid(Vector3 v1, Vector3 v2, Vector3 v3, Vector3 v4)
@@ -289,7 +286,6 @@ public class Delaunay
                         tet.B == i && tet.A == i + 1 && tet.C == i + 2 ||
                         tet.A == i && tet.C == i + 1 && tet.B == i + 2)
                     {
-                        tet.clockwise = false;
                         tet.dIsBorder = true;
                         break;
                     }
@@ -305,8 +301,6 @@ public class Delaunay
                         tet.B == i && tet.D == i + 1 && tet.A == i + 2 ||
                         tet.D == i && tet.A == i + 1 && tet.B == i + 2)
                     {
-                        // default value
-                        // tet.clockwise = true;
                         tet.cIsBorder = true;
                         break;
                     }
@@ -314,7 +308,6 @@ public class Delaunay
                         tet.B == i && tet.A == i + 1 && tet.D == i + 2 ||
                         tet.A == i && tet.D == i + 1 && tet.B == i + 2)
                     {
-                        tet.clockwise = false;
                         tet.cIsBorder = true;
                         break;
                     }
@@ -339,7 +332,6 @@ public class Delaunay
                         tet.C == i && tet.A == i + 1 && tet.D == i + 2 ||
                         tet.A == i && tet.D == i + 1 && tet.C == i + 2)
                     {
-                        tet.clockwise = false;
                         tet.bIsBorder = true;
                         break;
                     }
@@ -364,7 +356,6 @@ public class Delaunay
                         tet.C == i && tet.B == i + 1 && tet.D == i + 2 ||
                         tet.B == i && tet.D == i + 1 && tet.C == i + 2)
                     {
-                        tet.clockwise = false;
                         tet.aIsBorder = true;
                         break;
                     }

@@ -50,8 +50,8 @@ public class NewBehaviourScript : MonoBehaviour
             //part.AddComponent<Rigidbody>();
         }
 
-        for (int i = 0; i < cell.vertices.Count - 1; i++)
-            Debug.DrawLine(cell.vertices[i], cell.vertices[i + 1], Color.cyan);
+         for (int i = 0; i < cell.vertices.Count - 1; i++)
+             Debug.DrawLine(cell.vertices[i], cell.vertices[i + 1], Color.cyan);
     }
 
     public void GenerateVertices()

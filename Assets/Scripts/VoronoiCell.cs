@@ -22,7 +22,7 @@ public class VoronoiCell
 
     public void CutWithPlane(Vector3 p1, Vector3 p2, Vector3 p3)
     {
-        // check the order of the vertices relatively to the cell center
+        // check and fix the order of the vertices relatively to the cell center
         if (isOutside(seed, p1, p2, p3))
         {
             var t = p2;
@@ -36,54 +36,63 @@ public class VoronoiCell
 
         for (int i = 0; i < triangles.Count; i += 3)
         {
-            bool v1Out = isOutside(vertices[triangles[i]], p1, p2, p3);
-            bool v2Out = isOutside(vertices[triangles[i + 1]], p1, p2, p3);
-            bool v3Out = isOutside(vertices[triangles[i + 2]], p1, p2, p3);
+            var v1 = vertices[triangles[i]];
+            var v2 = vertices[triangles[i + 1]];
+            var v3 = vertices[triangles[i + 2]];
+            bool v1Out = isOutside(v1, p1, p2, p3);
+            bool v2Out = isOutside(v2, p1, p2, p3);
+            bool v3Out = isOutside(v3, p1, p2, p3);
             // if all vertices are outside
             if (v1Out && v2Out && v3Out)
+            {
+                Debug.DrawLine(v1, v2, Color.cyan);
+                Debug.DrawLine(v1, v3, Color.cyan);
+                Debug.DrawLine(v2, v3, Color.cyan);
                 continue;
+            }
             // if all vertices are inside
             else if (!v1Out && !v2Out && !v3Out)
             {
+                Debug.DrawLine(v1, v2, Color.red);
+                Debug.DrawLine(v1, v3, Color.red);
+                Debug.DrawLine(v2, v3, Color.red);
                 // if vertice is already in new Vertices, do not add it
-                int tri1Index = newVertices.IndexOf(vertices[triangles[i]]);
+                int tri1Index = newVertices.IndexOf(v1);
                 if (tri1Index > -1)
                     newTriangles.Add(tri1Index);
                 else
                 {
-                    newVertices.Add(vertices[triangles[i]]);
+                    newVertices.Add(v1);
                     newNormals.Add(normals[triangles[i]]);
                     newTriangles.Add(newVertices.Count - 1);
                 }
 
-                int tri2Index = newVertices.IndexOf(vertices[triangles[i + 1]]);
+                int tri2Index = newVertices.IndexOf(v2);
                 if (tri2Index > -1)
                     newTriangles.Add(tri2Index);
                 else
                 {
-                    newVertices.Add(vertices[triangles[i + 1]]);
+                    newVertices.Add(v2);
                     newNormals.Add(normals[triangles[i + 1]]);
                     newTriangles.Add(newVertices.Count - 1);
                 }
 
-                int tri3Index = newVertices.IndexOf(vertices[triangles[i + 2]]);
+                int tri3Index = newVertices.IndexOf(v3);
                 if (tri3Index > -1)
-                    newTriangles.Add(tri2Index);
+                    newTriangles.Add(tri3Index);
                 else
                 {
-                    newVertices.Add(vertices[triangles[i + 2]]);
+                    newVertices.Add(v3);
                     newNormals.Add(normals[triangles[i + 2]]);
                     newTriangles.Add(newVertices.Count - 1);
                 }
-                // yes I am sorry for this, but there are to many "if"s
+                // yes I am sorry for this, but there are to many "if"s. I hope its temporary
                 continue;
             }
+
             // if 1 point is on one side, and 2 - on the other, we cut triangles
             else
             {
-                var v1 = vertices[triangles[i]];
-                var v2 = vertices[triangles[i + 1]];
-                var v3 = vertices[triangles[i + 2]];
                 //    v2 ------ v3
                 //      \      / 
                 // -------------------- plane
@@ -94,11 +103,17 @@ public class VoronoiCell
                 {
                     var t = v1;
                     v1 = v3; v3 = v2; v2 = t;
+                    v1Out = isOutside(v1, p1, p2, p3);
+                    v2Out = isOutside(v2, p1, p2, p3);
+                    v3Out = isOutside(v3, p1, p2, p3);
                 }
                 else if (v1Out && v3Out)
                 {
                     var t = v1;
                     v1 = v2; v2 = v3; v3 = t;
+                    v1Out = isOutside(v1, p1, p2, p3);
+                    v2Out = isOutside(v2, p1, p2, p3);
+                    v3Out = isOutside(v3, p1, p2, p3);
                 }
 
                 // v1 is now inside for sure, now cut the triangle
@@ -143,6 +158,8 @@ public class VoronoiCell
                         v1.y + (v3.y - v1.y) * t,
                         v1.z + (v3.z - v1.z) * t);
 
+                    Debug.Log($"intersection1: {intersection1}");
+                    Debug.Log($"intersection2: {intersection2}");
                     // add v1
                     int v1Index = newVertices.IndexOf(v1);
                     if (v1Index > -1)
@@ -193,15 +210,22 @@ public class VoronoiCell
                 {
                     var t = v2;
                     v2 = v1; v1 = v3; v3 = t;
+                    v1Out = isOutside(v1, p1, p2, p3);
+                    v2Out = isOutside(v2, p1, p2, p3);
+                    v3Out = isOutside(v3, p1, p2, p3);
                 }
                 else if (!v1Out && !v2Out)
                 {
                     var t = v2;
                     v2 = v3; v3 = v1; v1 = t;
+                    v1Out = isOutside(v1, p1, p2, p3);
+                    v2Out = isOutside(v2, p1, p2, p3);
+                    v3Out = isOutside(v3, p1, p2, p3);
                 }
                 // v2 is now outside for sure, now cut the triangle
                 if (!v1Out && !v3Out)
                 {
+                    Debug.Log($"v2Out: {v2}");
                     //we need the two points where the plane intersects the triangle.
                     Vector3 intersection1;
                     Vector3 intersection2;
@@ -246,6 +270,8 @@ public class VoronoiCell
                         v1.x + (v2.x - v3.x) * t,
                         v1.y + (v2.y - v3.y) * t,
                         v1.z + (v2.z - v3.z) * t);
+                    Debug.Log($"intersection1: {intersection1}");
+                    Debug.Log($"intersection2: {intersection2}");
 
                     // add v1 and v1->i1->i2 triangle
                     int v1Index = newVertices.IndexOf(v1);
@@ -328,6 +354,6 @@ public class VoronoiCell
 
         var det = a00 * a11 * a22 + a01 * a12 * a20 + a02 * a10 * a21 -
             a02 * a11 * a20 - a01 * a10 * a22 - a00 * a12 * a21;
-        return det >= 0;
+        return det > 0;
     }
 }
