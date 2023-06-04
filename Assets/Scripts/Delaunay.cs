@@ -189,11 +189,6 @@ public class Delaunay
         }
     }
 
-
-    public static bool AlmostEqual(Vector3 left, Vector3 right)
-    {
-        return (left - right).sqrMagnitude < 0.01f;
-    }
     public static bool AlmostEqual(Triangle left, Triangle right)
     {
         return (left.A == right.A || left.A == right.B || left.A == right.C)
@@ -202,6 +197,7 @@ public class Delaunay
     }
 
     public List<Vector3> Vertices { get; private set; }
+    public List<int> Triangles { get; private set; }
 
     // initial mesh info
     public Vector3[] meshVertices;
@@ -210,10 +206,11 @@ public class Delaunay
     public List<Tetrahedron> Tetrahedra { get; private set; }
     public Tetrahedron THETETRAHEDRON;
 
-    public Delaunay(List<Vector3> vertices, Vector3[] mv, int[] mt)
+    public Delaunay(List<Vector3> vertices, List<int> triangles,  Vector3[] mv, int[] mt)
     {
         Tetrahedra = new List<Tetrahedron>();
         Vertices = new List<Vector3>(vertices);
+        Triangles = new List<int>(triangles);
         meshVertices = mv;
         meshTriangles = mt;
         meshVerticesCount = mv.Length;
@@ -269,17 +266,16 @@ public class Delaunay
         // find all the tetrahedra that contain initial faces
         foreach (var tet in Tetrahedra)
         {
-            Debug.Log($"{tet.A}, {tet.B}, {tet.C}, {tet.D}");
             if (tet.A < meshVerticesCount && tet.B < meshVerticesCount && tet.C < meshVerticesCount)
             {
-                for (int i = 0; i < meshTriangles.Length; i += 3)
+                for (int i = 0; i < Triangles.Count; i += 3)
                 {
-                    if (tet.A == i && tet.B == i + 1 && tet.C == i + 2 ||
-                        tet.A == i && tet.C == i + 1 && tet.B == i + 2 ||
-                        tet.B == i && tet.C == i + 1 && tet.A == i + 2 ||
-                        tet.B == i && tet.A == i + 1 && tet.C == i + 2 ||
-                        tet.C == i && tet.A == i + 1 && tet.B == i + 2 ||
-                        tet.C == i && tet.B == i + 1 && tet.A == i + 2 )
+                    if (tet.A == Triangles[i] && tet.B == Triangles[i + 1] && tet.C == Triangles[i + 2] ||
+                        tet.A == Triangles[i] && tet.C == Triangles[i + 1] && tet.B == Triangles[i + 2] ||
+                        tet.B == Triangles[i] && tet.C == Triangles[i + 1] && tet.A == Triangles[i + 2] ||
+                        tet.B == Triangles[i] && tet.A == Triangles[i + 1] && tet.C == Triangles[i + 2] ||
+                        tet.C == Triangles[i] && tet.A == Triangles[i + 1] && tet.B == Triangles[i + 2] ||
+                        tet.C == Triangles[i] && tet.B == Triangles[i + 1] && tet.A == Triangles[i + 2])
                     {
                         tet.dIsBorder = true;
                         break;
@@ -290,14 +286,14 @@ public class Delaunay
             }
             if (tet.A < meshVerticesCount && tet.B < meshVerticesCount && tet.D < meshVerticesCount)
             {
-                for (int i = 0; i < meshTriangles.Length; i += 3)
+                for (int i = 0; i < Triangles.Count; i += 3)
                 {
-                    if (tet.A == i && tet.B == i + 1 && tet.D == i + 2 ||
-                        tet.A == i && tet.D == i + 1 && tet.B == i + 2 ||
-                        tet.B == i && tet.A == i + 1 && tet.D == i + 2 ||
-                        tet.B == i && tet.D == i + 1 && tet.A == i + 2 ||
-                        tet.D == i && tet.A == i + 1 && tet.B == i + 2 ||
-                        tet.D == i && tet.B == i + 1 && tet.A == i + 2)
+                    if (tet.A == Triangles[i] && tet.B == Triangles[i + 1] && tet.D == Triangles[i + 2] ||
+                        tet.A == Triangles[i] && tet.D == Triangles[i + 1] && tet.B == Triangles[i + 2] ||
+                        tet.B == Triangles[i] && tet.A == Triangles[i + 1] && tet.D == Triangles[i + 2] ||
+                        tet.B == Triangles[i] && tet.D == Triangles[i + 1] && tet.A == Triangles[i + 2] ||
+                        tet.D == Triangles[i] && tet.A == Triangles[i + 1] && tet.B == Triangles[i + 2] ||
+                        tet.D == Triangles[i] && tet.B == Triangles[i + 1] && tet.A == Triangles[i + 2])
                     {
                         tet.cIsBorder = true;
                         break;
@@ -308,14 +304,14 @@ public class Delaunay
             }
             if (tet.A < meshVerticesCount && tet.C < meshVerticesCount && tet.D < meshVerticesCount)
             {
-                for (int i = 0; i < meshTriangles.Length; i += 3)
+                for (int i = 0; i < Triangles.Count; i += 3)
                 {
-                    if (tet.A == i && tet.C == i + 1 && tet.D == i + 2 ||
-                        tet.A == i && tet.D == i + 1 && tet.C == i + 2 ||
-                        tet.C == i && tet.D == i + 1 && tet.A == i + 2 ||
-                        tet.C == i && tet.A == i + 1 && tet.D == i + 2 ||
-                        tet.D == i && tet.A == i + 1 && tet.C == i + 2 ||
-                        tet.D == i && tet.C == i + 1 && tet.A == i + 2)
+                    if (tet.A == Triangles[i] && tet.C == Triangles[i + 1] && tet.D == Triangles[i + 2] ||
+                        tet.A == Triangles[i] && tet.D == Triangles[i + 1] && tet.C == Triangles[i + 2] ||
+                        tet.C == Triangles[i] && tet.D == Triangles[i + 1] && tet.A == Triangles[i + 2] ||
+                        tet.C == Triangles[i] && tet.A == Triangles[i + 1] && tet.D == Triangles[i + 2] ||
+                        tet.D == Triangles[i] && tet.A == Triangles[i + 1] && tet.C == Triangles[i + 2] ||
+                        tet.D == Triangles[i] && tet.C == Triangles[i + 1] && tet.A == Triangles[i + 2])
                     {
                         tet.bIsBorder = true;
                         break;
@@ -326,14 +322,14 @@ public class Delaunay
             }
             if (tet.B < meshVerticesCount && tet.C < meshVerticesCount && tet.D < meshVerticesCount)
             {
-                for (int i = 0; i < meshTriangles.Length; i += 3)
+                for (int i = 0; i < Triangles.Count; i += 3)
                 {
-                    if (tet.B == i && tet.C == i + 1 && tet.D == i + 2 ||
-                        tet.B == i && tet.D == i + 1 && tet.C == i + 2 ||
-                        tet.C == i && tet.B == i + 1 && tet.D == i + 2 ||
-                        tet.C == i && tet.D == i + 1 && tet.B == i + 2 ||
-                        tet.D == i && tet.B == i + 1 && tet.C == i + 2 ||
-                        tet.D == i && tet.C == i + 1 && tet.B == i + 2)
+                    if (tet.B == Triangles[i] && tet.C == Triangles[i + 1] && tet.D == Triangles[i + 2] ||
+                        tet.B == Triangles[i] && tet.D == Triangles[i + 1] && tet.C == Triangles[i + 2] ||
+                        tet.C == Triangles[i] && tet.B == Triangles[i + 1] && tet.D == Triangles[i + 2] ||
+                        tet.C == Triangles[i] && tet.D == Triangles[i + 1] && tet.B == Triangles[i + 2] ||
+                        tet.D == Triangles[i] && tet.B == Triangles[i + 1] && tet.C == Triangles[i + 2] ||
+                        tet.D == Triangles[i] && tet.C == Triangles[i + 1] && tet.B == Triangles[i + 2])
                     {
                         tet.aIsBorder = true;
                         break;
