@@ -15,6 +15,9 @@ public class NewBehaviourScript : MonoBehaviour
     // Update is called once per frame
     void Update()
     {
+        Debug.DrawLine(new Vector3(0, 0.5f, 0.5f), new Vector3(0.5f, 0.5f, 0), Color.black);
+        Debug.DrawLine(new Vector3(0.5f, 0.5f, 0), new Vector3(0.5f, 0, 0.5f), Color.black);
+        Debug.DrawLine(new Vector3(0.5f, 0, 0.5f), new Vector3(0, 0.5f, 0.5f), Color.black);
         if (Input.GetButtonDown("Jump"))
         {
             mf = GetComponent<MeshFilter>();
@@ -23,13 +26,9 @@ public class NewBehaviourScript : MonoBehaviour
             GenerateVertices();
             cell = new VoronoiCell(Vector3.zero, vertices);
 
-            cell.CutWithPlane(new Vector3(0.25f, 0.5f, -0.5f),
-                new Vector3(-0.5f, 0.5f, 0.25f),
-                new Vector3(-0.5f, -0.25f, -0.5f));
-            Debug.Log(cell.vertices.Count);
-
-
-
+            cell.CutWithPlane(new Vector3(0, 0.5f, 0.5f),
+                new Vector3(0.5f, 0.5f, 0),
+                new Vector3(0.5f, 0, 0.5f));
             // instantiate part
             var part = new GameObject("part");
 
@@ -50,8 +49,12 @@ public class NewBehaviourScript : MonoBehaviour
             //part.AddComponent<Rigidbody>();
         }
 
-         for (int i = 0; i < cell.vertices.Count - 1; i++)
-             Debug.DrawLine(cell.vertices[i], cell.vertices[i + 1], Color.cyan);
+            for (int i = 0; i < cell.triangles.Count ; i += 3)
+        {
+            Debug.DrawLine(cell.vertices[cell.triangles[i]], cell.vertices[cell.triangles[i + 1]], Color.cyan);
+            Debug.DrawLine(cell.vertices[cell.triangles[i + 1]], cell.vertices[cell.triangles[i + 2]], Color.cyan);
+            Debug.DrawLine(cell.vertices[cell.triangles[i + 2]], cell.vertices[cell.triangles[i]], Color.cyan);
+        }
     }
 
     public void GenerateVertices()

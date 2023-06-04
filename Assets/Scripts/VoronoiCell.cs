@@ -22,6 +22,7 @@ public class VoronoiCell
 
     public void CutWithPlane(Vector3 p1, Vector3 p2, Vector3 p3)
     {
+        Debug.Log(vertices.Count);
         // check and fix the order of the vertices relatively to the cell center
         if (isOutside(seed, p1, p2, p3))
         {
@@ -158,8 +159,6 @@ public class VoronoiCell
                         v1.y + (v3.y - v1.y) * t,
                         v1.z + (v3.z - v1.z) * t);
 
-                    Debug.Log($"intersection1: {intersection1}");
-                    Debug.Log($"intersection2: {intersection2}");
                     // add v1
                     int v1Index = newVertices.IndexOf(v1);
                     if (v1Index > -1)
@@ -225,7 +224,6 @@ public class VoronoiCell
                 // v2 is now outside for sure, now cut the triangle
                 if (!v1Out && !v3Out)
                 {
-                    Debug.Log($"v2Out: {v2}");
                     //we need the two points where the plane intersects the triangle.
                     Vector3 intersection1;
                     Vector3 intersection2;
@@ -267,11 +265,9 @@ public class VoronoiCell
 
                     t = -(t1 / t2);
                     intersection2 = new Vector3(
-                        v1.x + (v2.x - v3.x) * t,
-                        v1.y + (v2.y - v3.y) * t,
-                        v1.z + (v2.z - v3.z) * t);
-                    Debug.Log($"intersection1: {intersection1}");
-                    Debug.Log($"intersection2: {intersection2}");
+                        v3.x + (v2.x - v3.x) * t,
+                        v3.y + (v2.y - v3.y) * t,
+                        v3.z + (v2.z - v3.z) * t);
 
                     // add v1 and v1->i1->i2 triangle
                     int v1Index = newVertices.IndexOf(v1);
@@ -317,14 +313,12 @@ public class VoronoiCell
                         newTriangles.Add(v3Index);
                     else
                     {
-                        newVertices.Add(v1);
+                        newVertices.Add(v3);
                         newNormals.Add(Vector3.Cross(intersection1 - v1, intersection2 - v1));
                         newTriangles.Add(newVertices.Count - 1);
                     }
                     newTriangles.Add(newVertices.IndexOf(v1));
                     newTriangles.Add(newVertices.IndexOf(intersection2));
-                    // ending the "1 vertice is inside" part
-                    continue;
                 }
             }
         }
@@ -344,6 +338,13 @@ public class VoronoiCell
         vertices = newVertices;
         triangles = newTriangles;
         normals = newNormals;
+
+
+        Debug.Log(vertices.Count);
+        for (int i = 0; i < vertices.Count; i++)
+        {
+            Debug.Log(vertices[i]);
+        }
     }
 
     private bool isOutside(Vector3 v, Vector3 p1, Vector3 p2, Vector3 p3)
