@@ -10,6 +10,7 @@ public class Voronoi
     public int insidePointsCount = 5;
     // bounding box, that is used for an efficient points generation
     public Vector3 minBounds, maxBounds;
+    public Vector3  hitPoint;
 
     // initial mesh info
     public Vector3[] meshVertices;
@@ -24,7 +25,7 @@ public class Voronoi
     // output array of Voronoi cells
     public List<VoronoiCell> cells;
 
-    public Voronoi(Mesh mesh, Bounds bounds, int count)
+    public Voronoi(Mesh mesh, Bounds bounds, int count, Vector3 point)
     {
         meshVertices = mesh.vertices;
         meshTriangles = mesh.triangles;
@@ -36,6 +37,7 @@ public class Voronoi
 
         minBounds = bounds.min;
         maxBounds = bounds.max;
+        hitPoint = point;
     }
 
     public void Generate()

@@ -10,28 +10,37 @@ public class Destructible : MonoBehaviour
 
     MeshFilter mf;
     Collider mc;
+    public GameObject VFXPrefab;
 
     // Start is called before the first frame update  
     void Start()
     {
+        mf = GetComponent<MeshFilter>();
+        mc = GetComponent<Collider>();
     }
 
     // Update is called once per frame
     void Update()
     {
-
+        if (Input.GetMouseButtonDown(0))
+        {
+            RaycastHit hit = new RaycastHit();
+            if (mc.Raycast(Camera.main.ScreenPointToRay(Input.mousePosition), out hit, 9999f))
+            {
+                Instantiate(VFXPrefab, hit.point, Quaternion.identity);
+                Break(hit.point);
+            }
+        }
     }
 
     private void OnCollisionEnter(Collision collision)
     {
-        Break();
+        //Break();
     }
 
-    public void Break()
+    public void Break(Vector3 point)
     {
-        mf = GetComponent<MeshFilter>();
-        mc = GetComponent<Collider>();
-        voronoi = new Voronoi(mf.sharedMesh, mc.bounds, count);
+        voronoi = new Voronoi(mf.sharedMesh, mc.bounds, count, point);
         voronoi.Generate();
 
         foreach (VoronoiCell cell in voronoi.cells)
@@ -57,7 +66,7 @@ public class Destructible : MonoBehaviour
 
             Rigidbody prb = part.AddComponent<Rigidbody>();
             prb.mass = 0.5f;
-            prb.collisionDetectionMode = CollisionDetectionMode.Continuous;
+            prb.collisionDetectionMode = CollisionDetectionMode.ContinuousDynamic;
         }
         Destroy(this.gameObject);
     }
