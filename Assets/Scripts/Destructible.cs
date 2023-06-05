@@ -5,7 +5,7 @@ using UnityEngine;
 public class Destructible : MonoBehaviour
 {
     public Voronoi voronoi;
-    public int count = 1;
+    public int count = 100;
     //public int size = 1;
 
     MeshFilter mf;
@@ -19,35 +19,46 @@ public class Destructible : MonoBehaviour
     // Update is called once per frame
     void Update()
     {
-        if (Input.GetButtonDown("Jump"))
+
+    }
+
+    private void OnCollisionEnter(Collision collision)
+    {
+        Break();
+    }
+
+    public void Break()
+    {
+        mf = GetComponent<MeshFilter>();
+        mc = GetComponent<Collider>();
+        voronoi = new Voronoi(mf.sharedMesh, mc.bounds, count);
+        voronoi.Generate();
+
+        foreach (VoronoiCell cell in voronoi.cells)
         {
-            mf = GetComponent<MeshFilter>();
-            mc = GetComponent<Collider>();
-            voronoi = new Voronoi(mf.sharedMesh, mc.bounds, count);
+            // instantiate part
+            var part = new GameObject("part");
 
-            voronoi.Generate();
-            foreach(VoronoiCell cell in voronoi.cells)
-            {
-                // instantiate part
-                var part = new GameObject("part");
+            part.transform.SetParent(transform.parent, false);
+            part.transform.localPosition = Vector3.zero;
+            part.transform.localRotation = Quaternion.identity;
+            part.transform.localScale = Vector3.one;
 
-                part.transform.SetParent(transform, false);
-                part.transform.localPosition = Vector3.zero;
-                part.transform.localRotation = Quaternion.identity;
-                part.transform.localScale = Vector3.one;
+            var mesh = new Mesh();
+            mesh.SetVertices(cell.vertices);
+            mesh.SetTriangles(cell.triangles, 0);
+            mesh.SetNormals(cell.normals);
 
-                var mesh = new Mesh();
-                mesh.SetVertices(cell.vertices);
-                mesh.SetTriangles(cell.triangles, 0);
-                mesh.SetNormals(cell.normals);
+            part.AddComponent<MeshRenderer>().sharedMaterial = GetComponent<MeshRenderer>().material;
+            part.AddComponent<MeshFilter>().sharedMesh = mesh;
+            MeshCollider pmc = part.AddComponent<MeshCollider>();
+            pmc.convex = true;
+            pmc.sharedMesh = mesh;
 
-                part.AddComponent<MeshFilter>().sharedMesh = mesh;
-                part.AddComponent<MeshCollider>().sharedMesh = mesh;
-                part.AddComponent<MeshRenderer>().sharedMaterial = GetComponent<MeshRenderer>().material;
-
-                part.AddComponent<Rigidbody>();
-            }
+            Rigidbody prb = part.AddComponent<Rigidbody>();
+            prb.mass = 0.5f;
+            prb.collisionDetectionMode = CollisionDetectionMode.Continuous;
         }
-
+        Destroy(this.gameObject);
     }
 }

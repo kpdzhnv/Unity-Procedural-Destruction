@@ -7,7 +7,7 @@ public class Voronoi
     // class that generates Delaunay
     public Delaunay delaunay;
     // amount of points to be generated inside the mesh
-    public int insidePointsCount = 20;
+    public int insidePointsCount = 5;
     // bounding box, that is used for an efficient points generation
     public Vector3 minBounds, maxBounds;
 
@@ -16,7 +16,7 @@ public class Voronoi
     public int[] meshTriangles;
 
     // ALL vertices that are used for the algorithms
-    private List<Vector3> vertices;
+    public List<Vector3> vertices;
 
     // mesh triangles with a proper logic
     private List<int> triangles;
@@ -42,11 +42,11 @@ public class Voronoi
     {
         GenerateVertices();
 
-        //delaunay = new Delaunay(vertices, triangles, meshVertices, meshTriangles);
         delaunay = new Delaunay(vertices, meshVertices, meshTriangles);
         delaunay.Triangulate();
 
         CreateCells();
+        Debug.Log(cells.Count);
     }
 
     public void CreateCells()

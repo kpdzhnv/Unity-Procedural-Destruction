@@ -143,7 +143,6 @@ public class Delaunay
         public bool CircumCircleContains(Vector3 v)
         {
             Vector3 dist = v - Circumcenter;
-            // a slight inaccuracy because there can be 90 degree angles and the circumradius is on the face !
             return dist.sqrMagnitude < CircumradiusSquared;
         }
 
@@ -189,8 +188,6 @@ public class Delaunay
     }
 
     public List<Vector3> Vertices { get; private set; }
-    public List<int> Triangles { get; private set; }
-
     // initial mesh info
     public Vector3[] meshVertices;
     public int[] meshTriangles;
@@ -208,6 +205,7 @@ public class Delaunay
     {
         InitializeTheTetrahedron();
 
+        Debug.Log($"Vertices.Count: {Vertices.Count}");
         // adding vertices 
         for (int i = 0; i < Vertices.Count; i++)
         {
@@ -225,7 +223,6 @@ public class Delaunay
                     triangles.Add(new Triangle(tet.B, tet.C, tet.D));
                 }
             }
-
             // check if there are repetitions in triangles (if an added vertice was in sphere of multiple tetrahedra, one triangle is added multiple times)
             for (int j = 0; j < triangles.Count; j++)
                 for (int k = j + 1; k < triangles.Count; k++)
@@ -239,8 +236,15 @@ public class Delaunay
 
             Tetrahedra.RemoveAll((Tetrahedron t) => t.IsBad);
             triangles.RemoveAll((Triangle t) => t.IsBad);
+
+            foreach (var triangle in triangles)
+            {
+                var tet = new Tetrahedron(triangle.A, triangle.B, triangle.C, i, Vertices[triangle.A], Vertices[triangle.B], Vertices[triangle.C], Vertices[i]);
+                Tetrahedra.Add(tet);
+            }
         }
 
+        Debug.Log($"Tetrahedra.Count: {Tetrahedra.Count}");
         RemoveTheTetrahedron();
 
         var tetsToFLip = new List<Tetrahedron>();
