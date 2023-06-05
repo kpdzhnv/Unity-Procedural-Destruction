@@ -5,7 +5,7 @@ using UnityEngine;
 public class Destructible : MonoBehaviour
 {
     public Voronoi voronoi;
-    //public int count = 1;
+    public int count = 1;
     //public int size = 1;
 
     MeshFilter mf;
@@ -23,7 +23,7 @@ public class Destructible : MonoBehaviour
         {
             mf = GetComponent<MeshFilter>();
             mc = GetComponent<Collider>();
-            voronoi = new Voronoi(mf.sharedMesh, mc.bounds);
+            voronoi = new Voronoi(mf.sharedMesh, mc.bounds, count);
 
             voronoi.Generate();
             foreach(VoronoiCell cell in voronoi.cells)
@@ -45,7 +45,7 @@ public class Destructible : MonoBehaviour
                 part.AddComponent<MeshCollider>().sharedMesh = mesh;
                 part.AddComponent<MeshRenderer>().sharedMaterial = GetComponent<MeshRenderer>().material;
 
-                //part.AddComponent<Rigidbody>();
+                part.AddComponent<Rigidbody>();
             }
         }
 

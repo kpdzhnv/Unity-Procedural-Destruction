@@ -7,9 +7,7 @@ public class Voronoi
     // class that generates Delaunay
     public Delaunay delaunay;
     // amount of points to be generated inside the mesh
-    public int insidePointsCount = 2;
-    // amount of points of the initial mesh
-    public int boundaryPointsCount;
+    public int insidePointsCount = 20;
     // bounding box, that is used for an efficient points generation
     public Vector3 minBounds, maxBounds;
 
@@ -19,8 +17,6 @@ public class Voronoi
 
     // ALL vertices that are used for the algorithms
     private List<Vector3> vertices;
-    // booleans that tell if vertice is boundary 
-    private List<bool> verticesBoundary;
 
     // mesh triangles with a proper logic
     private List<int> triangles;
@@ -28,15 +24,14 @@ public class Voronoi
     // output array of Voronoi cells
     public List<VoronoiCell> cells;
 
-    public Voronoi(Mesh mesh, Bounds bounds)
+    public Voronoi(Mesh mesh, Bounds bounds, int count)
     {
         meshVertices = mesh.vertices;
         meshTriangles = mesh.triangles;
-        boundaryPointsCount = meshVertices.Length;
+        insidePointsCount = count;
 
         cells = new List<VoronoiCell>();
         vertices = new List<Vector3>();
-        verticesBoundary = new List<bool>();
         triangles = new List<int>();
 
         minBounds = bounds.min;
@@ -47,11 +42,9 @@ public class Voronoi
     {
         GenerateVertices();
 
-        delaunay = new Delaunay(vertices, triangles, meshVertices, meshTriangles);
+        //delaunay = new Delaunay(vertices, triangles, meshVertices, meshTriangles);
+        delaunay = new Delaunay(vertices, meshVertices, meshTriangles);
         delaunay.Triangulate();
-        Debug.Log(delaunay.Tetrahedra.Count);
-        foreach (var tet in delaunay.Tetrahedra)
-            Debug.Log(tet.aIsBorder || tet.bIsBorder || tet.cIsBorder || tet.dIsBorder);
 
         CreateCells();
     }
@@ -62,19 +55,12 @@ public class Voronoi
         for (int i = 0; i < vertices.Count; i++)
         {
             var points = new List<Vector3>();
-            var cuttingTets = new List<Delaunay.Tetrahedron>();
 
             // get all the points for the cell using the duality of the Delaunay & Voronoi
             foreach (var t in delaunay.Tetrahedra)
                 if (t.ContainsVertex(i))
-                {
                     // add the circumcenter
                     points.Add(t.Circumcenter);
-                    //Debug.Log(t.aIsBorder || t.bIsBorder || t.cIsBorder || t.dIsBorder);
-                    if (t.aIsBorder || t.bIsBorder || t.cIsBorder || t.dIsBorder)
-                        // add the tetrahedra to later calculate the intersection
-                        cuttingTets.Add(t);
-                }
 
             if (points.Count < 4)
                 continue;
@@ -82,16 +68,9 @@ public class Voronoi
             VoronoiCell cell = new VoronoiCell(vertices[i], points);
 
             // after creating the basic cell, it needs to be cut with the faces of the initial mesh
-            foreach (var tet in cuttingTets)
+            for (int j = 0; j < triangles.Count; j+=3)
             {
-                if (tet.aIsBorder)
-                    cell.CutWithPlane(vertices[tet.B], vertices[tet.C], vertices[tet.D], vertices[tet.A]);
-                if (tet.bIsBorder)
-                    cell.CutWithPlane(vertices[tet.C], vertices[tet.D], vertices[tet.A], vertices[tet.B]);
-                if (tet.cIsBorder)
-                    cell.CutWithPlane(vertices[tet.D], vertices[tet.A], vertices[tet.B], vertices[tet.C]);
-                if (tet.dIsBorder)
-                    cell.CutWithPlane(vertices[tet.A], vertices[tet.B], vertices[tet.C], vertices[tet.D]);
+                cell.CutWithPlane(vertices[triangles[j]], vertices[triangles[j + 1]], vertices[triangles[j + 2]]);
             }
             cells.Add(cell);
         }
@@ -105,9 +84,7 @@ public class Voronoi
         {
             if (!vertices.Contains(v))
                 vertices.Add(v);
-            verticesBoundary.Add(true);
         }
-        boundaryPointsCount = vertices.Count;
         for (int i = 0; i < meshTriangles.Length; i += 3)
         {
             triangles.Add(vertices.IndexOf(meshVertices[meshTriangles[i]]));
@@ -122,21 +99,15 @@ public class Voronoi
             float y = Random.Range(minBounds.y, maxBounds.y);
             float z = Random.Range(minBounds.z, maxBounds.z);
             var v = new Vector3(x, y, z);
-            var on = false;
-            if (IsInsideMesh(v, ref on))
+            if (IsInsideMesh(v))
             {
                 vertices.Add(v);
                 pointcount++;
-                if (on)
-                    verticesBoundary.Add(true);
-                else
-                    verticesBoundary.Add(false);
-
             }
         }
     }
 
-    public bool IsInsideMesh(Vector3 v, ref bool isOnMesh)
+    public bool IsInsideMesh(Vector3 v)
     {
         // https://stackoverflow.com/questions/2049582/how-to-determine-if-a-point-is-in-a-2d-triangle
         // taking projection of the mesh (ignoring the y coordinate)
@@ -189,8 +160,6 @@ public class Voronoi
 
             var det = a00 * a11 * a22 + a01 * a12 * a20 + a02 * a10 * a21 -
                 a02 * a11 * a20 - a01 * a10 * a22 - a00 * a12 * a21;
-            if (det == 0)
-                isOnMesh = true;
 
             if (det > 0)
                 countoutside++;

@@ -60,10 +60,6 @@ public class Delaunay
         public int B { get; set; }
         public int C { get; set; }
         public int D { get; set; }
-        public bool aIsBorder;
-        public bool bIsBorder;
-        public bool cIsBorder;
-        public bool dIsBorder;
 
         public bool IsBad { get; set; }
 
@@ -76,10 +72,6 @@ public class Delaunay
             B = b;
             C = c;
             D = d;
-            aIsBorder = false;
-            bIsBorder = false;
-            cIsBorder = false;
-            dIsBorder = false;
             CalculateCircumsphere(v1, v2, v3, v4);
         }
         public Vector3 GetCentroid(Vector3 v1, Vector3 v2, Vector3 v3, Vector3 v4)
@@ -152,7 +144,7 @@ public class Delaunay
         {
             Vector3 dist = v - Circumcenter;
             // a slight inaccuracy because there can be 90 degree angles and the circumradius is on the face !
-            return dist.sqrMagnitude <= CircumradiusSquared - 0.01f;
+            return dist.sqrMagnitude < CircumradiusSquared;
         }
 
         public static bool operator ==(Tetrahedron left, Tetrahedron right)
@@ -201,19 +193,15 @@ public class Delaunay
 
     // initial mesh info
     public Vector3[] meshVertices;
-    int meshVerticesCount;
     public int[] meshTriangles;
     public List<Tetrahedron> Tetrahedra { get; private set; }
     public Tetrahedron THETETRAHEDRON;
-
-    public Delaunay(List<Vector3> vertices, List<int> triangles,  Vector3[] mv, int[] mt)
+    public Delaunay(List<Vector3> vertices, Vector3[] mv, int[] mt)
     {
         Tetrahedra = new List<Tetrahedron>();
         Vertices = new List<Vector3>(vertices);
-        Triangles = new List<int>(triangles);
         meshVertices = mv;
         meshTriangles = mt;
-        meshVerticesCount = mv.Length;
     }
 
     public void Triangulate()
@@ -251,94 +239,11 @@ public class Delaunay
 
             Tetrahedra.RemoveAll((Tetrahedron t) => t.IsBad);
             triangles.RemoveAll((Triangle t) => t.IsBad);
-
-            foreach (var triangle in triangles)
-            {
-                var tet = new Tetrahedron(triangle.A, triangle.B, triangle.C, i, Vertices[triangle.A], Vertices[triangle.B], Vertices[triangle.C], Vertices[i]);
-                Tetrahedra.Add(tet);
-            }
         }
 
         RemoveTheTetrahedron();
 
         var tetsToFLip = new List<Tetrahedron>();
-
-        // find all the tetrahedra that contain initial faces
-        foreach (var tet in Tetrahedra)
-        {
-            if (tet.A < meshVerticesCount && tet.B < meshVerticesCount && tet.C < meshVerticesCount)
-            {
-                for (int i = 0; i < Triangles.Count; i += 3)
-                {
-                    if (tet.A == Triangles[i] && tet.B == Triangles[i + 1] && tet.C == Triangles[i + 2] ||
-                        tet.A == Triangles[i] && tet.C == Triangles[i + 1] && tet.B == Triangles[i + 2] ||
-                        tet.B == Triangles[i] && tet.C == Triangles[i + 1] && tet.A == Triangles[i + 2] ||
-                        tet.B == Triangles[i] && tet.A == Triangles[i + 1] && tet.C == Triangles[i + 2] ||
-                        tet.C == Triangles[i] && tet.A == Triangles[i + 1] && tet.B == Triangles[i + 2] ||
-                        tet.C == Triangles[i] && tet.B == Triangles[i + 1] && tet.A == Triangles[i + 2])
-                    {
-                        tet.dIsBorder = true;
-                        break;
-                    }
-                    else
-                        tetsToFLip.Add(tet);
-                }
-            }
-            if (tet.A < meshVerticesCount && tet.B < meshVerticesCount && tet.D < meshVerticesCount)
-            {
-                for (int i = 0; i < Triangles.Count; i += 3)
-                {
-                    if (tet.A == Triangles[i] && tet.B == Triangles[i + 1] && tet.D == Triangles[i + 2] ||
-                        tet.A == Triangles[i] && tet.D == Triangles[i + 1] && tet.B == Triangles[i + 2] ||
-                        tet.B == Triangles[i] && tet.A == Triangles[i + 1] && tet.D == Triangles[i + 2] ||
-                        tet.B == Triangles[i] && tet.D == Triangles[i + 1] && tet.A == Triangles[i + 2] ||
-                        tet.D == Triangles[i] && tet.A == Triangles[i + 1] && tet.B == Triangles[i + 2] ||
-                        tet.D == Triangles[i] && tet.B == Triangles[i + 1] && tet.A == Triangles[i + 2])
-                    {
-                        tet.cIsBorder = true;
-                        break;
-                    }
-                    else
-                        tetsToFLip.Add(tet);
-                }
-            }
-            if (tet.A < meshVerticesCount && tet.C < meshVerticesCount && tet.D < meshVerticesCount)
-            {
-                for (int i = 0; i < Triangles.Count; i += 3)
-                {
-                    if (tet.A == Triangles[i] && tet.C == Triangles[i + 1] && tet.D == Triangles[i + 2] ||
-                        tet.A == Triangles[i] && tet.D == Triangles[i + 1] && tet.C == Triangles[i + 2] ||
-                        tet.C == Triangles[i] && tet.D == Triangles[i + 1] && tet.A == Triangles[i + 2] ||
-                        tet.C == Triangles[i] && tet.A == Triangles[i + 1] && tet.D == Triangles[i + 2] ||
-                        tet.D == Triangles[i] && tet.A == Triangles[i + 1] && tet.C == Triangles[i + 2] ||
-                        tet.D == Triangles[i] && tet.C == Triangles[i + 1] && tet.A == Triangles[i + 2])
-                    {
-                        tet.bIsBorder = true;
-                        break;
-                    }
-                    else
-                        tetsToFLip.Add(tet);
-                }
-            }
-            if (tet.B < meshVerticesCount && tet.C < meshVerticesCount && tet.D < meshVerticesCount)
-            {
-                for (int i = 0; i < Triangles.Count; i += 3)
-                {
-                    if (tet.B == Triangles[i] && tet.C == Triangles[i + 1] && tet.D == Triangles[i + 2] ||
-                        tet.B == Triangles[i] && tet.D == Triangles[i + 1] && tet.C == Triangles[i + 2] ||
-                        tet.C == Triangles[i] && tet.B == Triangles[i + 1] && tet.D == Triangles[i + 2] ||
-                        tet.C == Triangles[i] && tet.D == Triangles[i + 1] && tet.B == Triangles[i + 2] ||
-                        tet.D == Triangles[i] && tet.B == Triangles[i + 1] && tet.C == Triangles[i + 2] ||
-                        tet.D == Triangles[i] && tet.C == Triangles[i + 1] && tet.B == Triangles[i + 2])
-                    {
-                        tet.aIsBorder = true;
-                        break;
-                    }
-                    else
-                        tetsToFLip.Add(tet);
-                }
-            }
-        }
         // flip tets
         //while (tetsToFLip.Count > 0)
         //{
