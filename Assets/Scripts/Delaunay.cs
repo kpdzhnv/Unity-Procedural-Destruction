@@ -205,7 +205,6 @@ public class Delaunay
     {
         InitializeTheTetrahedron();
 
-        Debug.Log($"Vertices.Count: {Vertices.Count}");
         // adding vertices 
         for (int i = 0; i < Vertices.Count; i++)
         {
@@ -244,8 +243,7 @@ public class Delaunay
             }
         }
 
-        Debug.Log($"Tetrahedra.Count: {Tetrahedra.Count}");
-        RemoveTheTetrahedron();
+        //RemoveTheTetrahedron();
 
         var tetsToFLip = new List<Tetrahedron>();
         // flip tets
@@ -261,6 +259,7 @@ public class Delaunay
                 tet.IsBad = true;
         }
         Tetrahedra.RemoveAll((Tetrahedron t) => t.IsBad);
+        Debug.Log($"Tetrahedra.Count {Tetrahedra.Count}");
     }
 
     // initialization of a VERY huge tetrahedron that has all vertices included

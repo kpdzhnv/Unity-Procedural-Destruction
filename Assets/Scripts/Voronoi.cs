@@ -7,7 +7,8 @@ public class Voronoi
     // class that generates Delaunay
     public Delaunay delaunay;
     // amount of points to be generated inside the mesh
-    public int insidePointsCount = 5;
+    public int insidePointsCount;
+    public int boundaryPointsCount;
     // bounding box, that is used for an efficient points generation
     public Vector3 minBounds, maxBounds;
     public Vector3  hitPoint;
@@ -48,15 +49,20 @@ public class Voronoi
         delaunay.Triangulate();
 
         CreateCells();
-        Debug.Log(cells.Count);
+        Debug.Log($"cells.Count {cells.Count}");
     }
 
     public void CreateCells()
     {
+        Debug.Log($"vertices.Count {vertices.Count}");
+        Debug.Log($"boundaryPointsCount {boundaryPointsCount}");
         // each Delaunay vertice is a center of a corresponding Voronoi cell
         for (int i = 0; i < vertices.Count; i++)
         {
             var points = new List<Vector3>();
+            // if the vertice is on the mesh, add it
+            if (i < boundaryPointsCount)
+                points.Add(vertices[i]);
 
             // get all the points for the cell using the duality of the Delaunay & Voronoi
             foreach (var t in delaunay.Tetrahedra)
@@ -64,16 +70,18 @@ public class Voronoi
                     // add the circumcenter
                     points.Add(t.Circumcenter);
 
-            if (points.Count < 4)
+            VoronoiCell cell = new VoronoiCell(vertices[i], points);
+            if (cell.isBad)
                 continue;
 
-            VoronoiCell cell = new VoronoiCell(vertices[i], points);
-
+            Debug.Log($"-------------------------------------");
+            Debug.Log($"vertices.Count {cell.vertices.Count}");
             // after creating the basic cell, it needs to be cut with the faces of the initial mesh
             for (int j = 0; j < triangles.Count; j+=3)
             {
                 cell.CutWithPlane(vertices[triangles[j]], vertices[triangles[j + 1]], vertices[triangles[j + 2]]);
             }
+            Debug.Log($"vertices.Count {cell.vertices.Count}");
             cells.Add(cell);
         }
     }
@@ -81,11 +89,15 @@ public class Voronoi
     // generates vertices up until pointcount and modifies vertices & triangles Lists
     public void GenerateVertices()
     {
+        boundaryPointsCount = 0;
         // add initial mesh vertices 
         foreach (var v in meshVertices)
         {
             if (!vertices.Contains(v))
+            {
                 vertices.Add(v);
+                boundaryPointsCount++;
+            }
         }
         for (int i = 0; i < meshTriangles.Length; i += 3)
         {
@@ -97,10 +109,13 @@ public class Voronoi
         int pointcount = 0;
         while (pointcount != insidePointsCount)
         {
-            float x = Random.Range(minBounds.x, maxBounds.x);
-            float y = Random.Range(minBounds.y, maxBounds.y);
-            float z = Random.Range(minBounds.z, maxBounds.z);
-            var v = new Vector3(x, y, z);
+            float val = Mathf.Pow(Random.value, 4);
+
+            // -1 ... +1 values
+            float x = Random.value * 2 - 1;
+            float y = Random.value * 2 - 1;
+            float z = Random.value * 2 - 1;
+            var v = new Vector3(x, y, z) * val + hitPoint;
             if (IsInsideMesh(v))
             {
                 vertices.Add(v);

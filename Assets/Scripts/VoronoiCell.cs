@@ -9,6 +9,8 @@ public class VoronoiCell
     public List<int> triangles;
     public List<Vector3> normals;
 
+    public bool isBad;
+
     public VoronoiCell(Vector3 seedPos, List<Vector3> points)
     {
         seed = seedPos;
@@ -16,19 +18,26 @@ public class VoronoiCell
         triangles = new List<int>();
         normals = new List<Vector3>();
 
+        if (points.Count < 4)
+        {
+            isBad = true;
+            return;
+        }
         ConvexHull.ConvexHullCalculator calc = new ConvexHull.ConvexHullCalculator();
         calc.GenerateHull(points, true, ref vertices, ref triangles, ref normals);
     }
 
-    public void CutWithPlane(Vector3 p1, Vector3 p2, Vector3 p3, Vector3 pointUnderPlane = default(Vector3))
+    //public void ConvexHull()
+    //{
+    //    if (vertices.Count < 4)
+    //    {
+    //        isBad = true;
+    //        return;
+    //    }
+    //}
+
+    public void CutWithPlane(Vector3 p1, Vector3 p2, Vector3 p3)
     {
-        // check and fix the order of the vertices relatively to the fourth point of the tetrahedron, since it is definetely inside
-        if (IsAbovePlane(pointUnderPlane, p1, p2, p3))
-        {
-            var t = p2;
-            p2 = p3;
-            p3 = t;
-        }
         Vector3 planeNormal = Vector3.Cross(p2 - p1, p3 - p1);
         var newVertices = new List<Vector3>(); 
         var newTriangles = new List<int>();
@@ -47,15 +56,18 @@ public class VoronoiCell
             bool v2On = IsOnPlane(v2, p1, p2, p3);
             bool v3On = IsOnPlane(v3, p1, p2, p3);
 
-            // if all vertices are outside or 2 are on the plane
+            // if all vertices are outside or some are on the plane
             if (v1Out && v2Out && v3Out ||
                 v1On && v2On && v3Out ||
                 v1Out && v2On && v3On ||
-                v1On && v2Out && v3On)
+                v1On && v2Out && v3On ||
+                v1On && v2Out && v3Out ||
+                v1Out && v2On && v3Out ||
+                v1Out && v2Out && v3On)
             {
                 continue;
             }
-            // if all vertices are inside (automatically includes if 1, 2 or 3 are on the plane)
+            // if all vertices are inside (automatically includes if any point is on the plane)
             else if (!v1Out && !v2Out && !v3Out)
             {
                 newVertices.Add(v1);
@@ -72,9 +84,9 @@ public class VoronoiCell
             }
 
             // if 1 point is INSIDE (not on the plane), and 2 - outside, we cut 1 triangle
-            else if (v1Out && v2Out && !v3Out && !v3On ||
-                !v1Out && v2Out && v3Out && !v1On ||
-                v1Out && !v2Out && v3Out && !v2On)
+            else if (v1Out && v2Out && !v3Out  ||
+                !v1Out && v2Out && v3Out ||
+                v1Out && !v2Out && v3Out )
             {
                 //    v2 ------ v3
                 //      \      / 
@@ -99,45 +111,61 @@ public class VoronoiCell
                 Vector3 intersection1;
                 Vector3 intersection2;
 
-                // https://mathworld.wolfram.com/Line-PlaneIntersection.html
-                // v1 -> v2 plane intersection
-                float t1 = new Matrix4x4(
-                    new Vector4(1, 1, 1, 1),
-                    new Vector4(p1.x, p2.x, p3.x, v1.x),
-                    new Vector4(p1.y, p2.y, p3.y, v1.y),
-                    new Vector4(p1.z, p2.z, p3.z, v1.z)
-                    ).determinant;
-                float t2 = new Matrix4x4(
-                    new Vector4(1, 1, 1, 0),
-                    new Vector4(p1.x, p2.x, p3.x, v2.x - v1.x),
-                    new Vector4(p1.y, p2.y, p3.y, v2.y - v1.y),
-                    new Vector4(p1.z, p2.z, p3.z, v2.z - v1.z)
-                    ).determinant;
-
-                float t = -(t1 / t2);
-                intersection1 = new Vector3(
-                    v1.x + (v2.x - v1.x) * t,
-                    v1.y + (v2.y - v1.y) * t,
-                    v1.z + (v2.z - v1.z) * t);
-
-                // v1 -> v3 plane intersection (t1 is same for both)
-                t2 = new Matrix4x4(
-                    new Vector4(1, 1, 1, 0),
-                    new Vector4(p1.x, p2.x, p3.x, v3.x - v1.x),
-                    new Vector4(p1.y, p2.y, p3.y, v3.y - v1.y),
-                    new Vector4(p1.z, p2.z, p3.z, v3.z - v1.z)
-                    ).determinant;
-
-                t = -(t1 / t2);
-                intersection2 = new Vector3(
-                    v1.x + (v3.x - v1.x) * t,
-                    v1.y + (v3.y - v1.y) * t,
-                    v1.z + (v3.z - v1.z) * t);
                 if (v2On)
+                {
                     intersection1 = v2;
-                if (v3On)
-                    intersection2 = v3;
 
+                }
+                else
+                {
+                    // https://mathworld.wolfram.com/Line-PlaneIntersection.html
+                    // v1 -> v2 plane intersection
+                    float t1 = new Matrix4x4(
+                        new Vector4(1, 1, 1, 1),
+                        new Vector4(p1.x, p2.x, p3.x, v1.x),
+                        new Vector4(p1.y, p2.y, p3.y, v1.y),
+                        new Vector4(p1.z, p2.z, p3.z, v1.z)
+                        ).determinant;
+                    float t2 = new Matrix4x4(
+                        new Vector4(1, 1, 1, 0),
+                        new Vector4(p1.x, p2.x, p3.x, v2.x - v1.x),
+                        new Vector4(p1.y, p2.y, p3.y, v2.y - v1.y),
+                        new Vector4(p1.z, p2.z, p3.z, v2.z - v1.z)
+                        ).determinant;
+
+                    float t = -(t1 / t2);
+                    intersection1 = new Vector3(
+                        v1.x + (v2.x - v1.x) * t,
+                        v1.y + (v2.y - v1.y) * t,
+                        v1.z + (v2.z - v1.z) * t);
+                }
+                if (v3On)
+                {
+                    intersection2 = v3;
+                }
+                else
+                {
+                    // v1 -> v3 plane intersection (t1 is same for both)
+                    float t1 = new Matrix4x4(
+                        new Vector4(1, 1, 1, 1),
+                        new Vector4(p1.x, p2.x, p3.x, v1.x),
+                        new Vector4(p1.y, p2.y, p3.y, v1.y),
+                        new Vector4(p1.z, p2.z, p3.z, v1.z)
+                        ).determinant;
+                    float t2 = new Matrix4x4(
+                        new Vector4(1, 1, 1, 0),
+                        new Vector4(p1.x, p2.x, p3.x, v3.x - v1.x),
+                        new Vector4(p1.y, p2.y, p3.y, v3.y - v1.y),
+                        new Vector4(p1.z, p2.z, p3.z, v3.z - v1.z)
+                        ).determinant;
+
+                    float t = -(t1 / t2);
+                    intersection2 = new Vector3(
+                        v1.x + (v3.x - v1.x) * t,
+                        v1.y + (v3.y - v1.y) * t,
+                        v1.z + (v3.z - v1.z) * t);
+
+                }
                 // add v1
                 newVertices.Add(v1);
                 newNormals.Add(Vector3.Cross(intersection1 - v1, intersection2 - v1));
@@ -291,6 +319,7 @@ public class VoronoiCell
 
         float det = a00 * a11 * a22 + a01 * a12 * a20 + a02 * a10 * a21 -
             a02 * a11 * a20 - a01 * a10 * a22 - a00 * a12 * a21;
+        //return det > 0.001f;
         return det > 0;
     }
 
@@ -303,6 +332,7 @@ public class VoronoiCell
 
         float det = a00 * a11 * a22 + a01 * a12 * a20 + a02 * a10 * a21 -
             a02 * a11 * a20 - a01 * a10 * a22 - a00 * a12 * a21;
+        //return Mathf.Abs(det) < 0.001f;
         return det == 0;
     }
 }

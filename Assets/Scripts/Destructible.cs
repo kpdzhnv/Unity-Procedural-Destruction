@@ -2,6 +2,8 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
+[RequireComponent(typeof(Rigidbody))]
+[RequireComponent(typeof(Collider))]
 public class Destructible : MonoBehaviour
 {
     public Voronoi voronoi;
@@ -60,14 +62,60 @@ public class Destructible : MonoBehaviour
 
             part.AddComponent<MeshRenderer>().sharedMaterial = GetComponent<MeshRenderer>().material;
             part.AddComponent<MeshFilter>().sharedMesh = mesh;
-            MeshCollider pmc = part.AddComponent<MeshCollider>();
-            pmc.convex = true;
-            pmc.sharedMesh = mesh;
+            //MeshCollider pmc = part.AddComponent<MeshCollider>();
+            //pmc.convex = true;
+            //pmc.sharedMesh = mesh;
 
-            Rigidbody prb = part.AddComponent<Rigidbody>();
-            prb.mass = 0.5f;
-            prb.collisionDetectionMode = CollisionDetectionMode.ContinuousDynamic;
+            //Rigidbody prb = part.AddComponent<Rigidbody>();
+            //prb.mass = 0.5f;
+            //prb.collisionDetectionMode = CollisionDetectionMode.ContinuousDynamic;
         }
-        Destroy(this.gameObject);
+        //Destroy(this.gameObject);
+    }
+
+    private void OnDrawGizmos()
+    {
+        // tetrahedralization
+        foreach (var t in voronoi.delaunay.Tetrahedra)
+        {
+            Gizmos.color = Color.white;
+            Gizmos.DrawLine(voronoi.vertices[t.A], voronoi.vertices[t.B]);
+            Gizmos.DrawLine(voronoi.vertices[t.A], voronoi.vertices[t.C]);
+            Gizmos.DrawLine(voronoi.vertices[t.A], voronoi.vertices[t.D]);
+            Gizmos.DrawLine(voronoi.vertices[t.B], voronoi.vertices[t.C]);
+            Gizmos.DrawLine(voronoi.vertices[t.B], voronoi.vertices[t.D]);
+            Gizmos.DrawLine(voronoi.vertices[t.C], voronoi.vertices[t.D]);
+
+
+            Gizmos.color = Color.red;
+            Gizmos.DrawSphere(t.Circumcenter, 0.05f);
+
+            Gizmos.color = Color.blue;
+            Gizmos.DrawSphere(voronoi.vertices[t.A], 0.02f);
+            Gizmos.DrawSphere(voronoi.vertices[t.B], 0.02f);
+            Gizmos.DrawSphere(voronoi.vertices[t.C], 0.02f);
+            Gizmos.DrawSphere(voronoi.vertices[t.D], 0.02f);
+
+        }
+
+        var c = voronoi.cells[0];
+        Gizmos.color = Color.magenta;
+        foreach (var p in c.vertices)
+            Gizmos.DrawSphere(p, 0.02f);
+
+        //foreach (var c in voronoi.cells)
+        //{
+        //    Gizmos.DrawSphere(c.seed, 0.02f);
+
+        //}
+
+        // the big tetrahedron
+
+       Gizmos.DrawLine(voronoi.vertices[voronoi.delaunay.THETETRAHEDRON.A], voronoi.vertices[voronoi.delaunay.THETETRAHEDRON.B]);
+        Gizmos.DrawLine(voronoi.vertices[voronoi.delaunay.THETETRAHEDRON.A], voronoi.vertices[voronoi.delaunay.THETETRAHEDRON.C]);
+        Gizmos.DrawLine(voronoi.vertices[voronoi.delaunay.THETETRAHEDRON.A], voronoi.vertices[voronoi.delaunay.THETETRAHEDRON.D]);
+        Gizmos.DrawLine(voronoi.vertices[voronoi.delaunay.THETETRAHEDRON.B], voronoi.vertices[voronoi.delaunay.THETETRAHEDRON.C]);
+        Gizmos.DrawLine(voronoi.vertices[voronoi.delaunay.THETETRAHEDRON.B], voronoi.vertices[voronoi.delaunay.THETETRAHEDRON.D]);
+        Gizmos.DrawLine(voronoi.vertices[voronoi.delaunay.THETETRAHEDRON.C], voronoi.vertices[voronoi.delaunay.THETETRAHEDRON.D]);
     }
 }
