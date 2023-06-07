@@ -27,48 +27,36 @@ public class VoronoiCell
         calc.GenerateHull(points, true, ref vertices, ref triangles, ref normals);
     }
 
-    //public void ConvexHull()
-    //{
-    //    if (vertices.Count < 4)
-    //    {
-    //        isBad = true;
-    //        return;
-    //    }
-    //}
-
     public void CutWithPlane(Vector3 p1, Vector3 p2, Vector3 p3)
     {
         Vector3 planeNormal = Vector3.Cross(p2 - p1, p3 - p1);
-        var newVertices = new List<Vector3>(); 
+        var newVertices = new List<Vector3>();
         var newTriangles = new List<int>();
-        var planeTriangles = new List<int>();
         var newNormals = new List<Vector3>();
 
+        var planeTriangles = new List<int>();
+        var planeVertices = new List<Vector3>();
+        var planeNormals = new List<Vector3>();
+
+        Debug.Log(triangles.Count);
         for (int i = 0; i < triangles.Count; i += 3)
         {
             var v1 = vertices[triangles[i]];
             var v2 = vertices[triangles[i + 1]];
             var v3 = vertices[triangles[i + 2]];
-            bool v1Out = IsAbovePlane(v1, p1, p2, p3);
-            bool v2Out = IsAbovePlane(v2, p1, p2, p3);
-            bool v3Out = IsAbovePlane(v3, p1, p2, p3);
+            bool v1Above = IsAbovePlane(v1, p1, p2, p3);
+            bool v2Above = IsAbovePlane(v2, p1, p2, p3);
+            bool v3Above = IsAbovePlane(v3, p1, p2, p3);
             bool v1On = IsOnPlane(v1, p1, p2, p3);
             bool v2On = IsOnPlane(v2, p1, p2, p3);
             bool v3On = IsOnPlane(v3, p1, p2, p3);
 
-            // if all vertices are outside or some are on the plane
-            if (v1Out && v2Out && v3Out ||
-                v1On && v2On && v3Out ||
-                v1Out && v2On && v3On ||
-                v1On && v2Out && v3On ||
-                v1On && v2Out && v3Out ||
-                v1Out && v2On && v3Out ||
-                v1Out && v2Out && v3On)
+            // if all vertices are outside or some\all are on the plane
+            if ((v1On || v1Above) && (v2On || v2Above) && (v3On || v3Above))
             {
-                continue;
             }
-            // if all vertices are inside (automatically includes if any point is on the plane)
-            else if (!v1Out && !v2Out && !v3Out)
+            // if all vertices are inside (if all are on the plane, it is bad! and checked in prvious case)
+            else if (!v1Above && !v2Above && !v3Above)
             {
                 newVertices.Add(v1);
                 newNormals.Add(normals[triangles[i]]);
@@ -81,12 +69,42 @@ public class VoronoiCell
                 newVertices.Add(v3);
                 newNormals.Add(normals[triangles[i + 2]]);
                 newTriangles.Add(newVertices.Count - 1);
+                if (v1On && v2On)
+                {
+                    planeVertices.Add(v1);
+                    planeNormals.Add(planeNormal);
+                    planeTriangles.Add(newVertices.Count - 1);
+
+                    planeVertices.Add(v2);
+                    planeNormals.Add(planeNormal);
+                    planeTriangles.Add(newVertices.Count - 1);
+                }
+                else if (v2On && v3On)
+                {
+                    planeVertices.Add(v2);
+                    planeNormals.Add(planeNormal);
+                    planeTriangles.Add(newVertices.Count - 1);
+
+                    planeVertices.Add(v3);
+                    planeNormals.Add(planeNormal);
+                    planeTriangles.Add(newVertices.Count - 1);
+                }
+                else if (v3On && v1On)
+                {
+                    planeVertices.Add(v3);
+                    planeNormals.Add(planeNormal);
+                    planeTriangles.Add(newVertices.Count - 1);
+
+                    planeVertices.Add(v1);
+                    planeNormals.Add(planeNormal);
+                    planeTriangles.Add(newVertices.Count - 1);
+                }
             }
 
             // if 1 point is INSIDE (not on the plane), and 2 - outside, we cut 1 triangle
-            else if (v1Out && v2Out && !v3Out  ||
-                !v1Out && v2Out && v3Out ||
-                v1Out && !v2Out && v3Out )
+            else if ((v1Above || v1On) && (v2Above || v2On) && (!v3Above && !v3On) ||
+                (!v1Above && !v1On) && (v2Above || v2On) && (v3Above || v3On) ||
+                (v1Above || v1On) && (!v2Above && !v2On) && ((v3Above || v3On)))
             {
                 //    v2 ------ v3
                 //      \      / 
@@ -94,17 +112,20 @@ public class VoronoiCell
                 //        \  /
                 //         \/ v1
                 // if one point is inside, we make it v1
-                if (v1Out && v2Out)
+                if (!v3Above && !v3On)
                 {
                     var temp = v1;
                     v1 = v3; v3 = v2; v2 = temp;
                 }
-                else if (v1Out && v3Out)
+                else if (!v2Above && !v2On)
                 {
                     var temp = v1;
                     v1 = v2; v2 = v3; v3 = temp;
                 }
 
+                Debug.Log($"v1: {v1}");
+                Debug.Log($"v2: {v2}");
+                Debug.Log($"v3: {v3}");
                 // v1 is now inside for sure, now cut the triangle
 
                 //we need the two points where the plane intersects the triangle.
@@ -114,7 +135,6 @@ public class VoronoiCell
                 if (v2On)
                 {
                     intersection1 = v2;
-
                 }
                 else
                 {
@@ -145,7 +165,7 @@ public class VoronoiCell
                 }
                 else
                 {
-                    // v1 -> v3 plane intersection (t1 is same for both)
+                    // v1 -> v3 plane intersection 
                     float t1 = new Matrix4x4(
                         new Vector4(1, 1, 1, 1),
                         new Vector4(p1.x, p2.x, p3.x, v1.x),
@@ -175,22 +195,22 @@ public class VoronoiCell
                 newVertices.Add(intersection1);
                 newNormals.Add(Vector3.Cross(intersection2 - intersection1, v1 - intersection1));
                 newTriangles.Add(newVertices.Count - 1);
-                newVertices.Add(intersection1);
-                newNormals.Add(planeNormal);
-                planeTriangles.Add(newVertices.Count - 1);
-
+                
                 newVertices.Add(intersection2);
                 newNormals.Add(Vector3.Cross(v1 - intersection2, intersection1 - intersection2));
                 newTriangles.Add(newVertices.Count - 1);
-                newVertices.Add(intersection2);
-                newNormals.Add(planeNormal);
+
+                planeVertices.Add(intersection1);
+                planeNormals.Add(planeNormal);
+                planeTriangles.Add(newVertices.Count - 1);
+
+                planeVertices.Add(intersection2);
+                planeNormals.Add(planeNormal);
                 planeTriangles.Add(newVertices.Count - 1);
             }
 
             // if 2 points are INSIDE (not on the plane), and 1 - outside, we cut 2 triangles
-            else if (v1Out && !v2Out && !v3Out && !v3On && !v2On ||
-            !v1Out && v2Out && !v3Out && !v1On && !v3On ||
-            !v1Out && !v2Out && v3Out && !v2On && !v1On)
+            else
             {
                 //         /\ v2
                 //        /  \ 
@@ -198,12 +218,12 @@ public class VoronoiCell
                 //      /      \ 
                 //   v1 -------- v3
                 // if one point is outside, we make it v2
-                if (!v2Out && !v3Out)
+                if (!v2Above && !v3Above)
                 {
                     var temp = v2;
                     v2 = v1; v1 = v3; v3 = temp;
                 }
-                else if (!v1Out && !v2Out)
+                else if (!v1Above && !v2Above)
                 {
                     var temp = v2;
                     v2 = v3; v3 = v1; v1 = temp;
@@ -264,16 +284,10 @@ public class VoronoiCell
                 newVertices.Add(intersection1);
                 newNormals.Add(Vector3.Cross(intersection2 - intersection1, v1 - intersection1));
                 newTriangles.Add(newVertices.Count - 1);
-                newVertices.Add(intersection1);
-                newNormals.Add(planeNormal);
-                planeTriangles.Add(newVertices.Count - 1);
 
                 newVertices.Add(intersection2);
                 newNormals.Add(Vector3.Cross(v1 - intersection2, intersection1 - intersection2));
                 newTriangles.Add(newVertices.Count - 1);
-                newVertices.Add(intersection2);
-                newNormals.Add(planeNormal);
-                planeTriangles.Add(newVertices.Count - 1);
 
                 // add v3 and v3->v1->i2 triangle
                 newVertices.Add(v3);
@@ -288,22 +302,37 @@ public class VoronoiCell
                 newNormals.Add(Vector3.Cross(v3 - intersection2, v1 - intersection2));
                 newTriangles.Add(newVertices.Count - 1);
 
+                planeVertices.Add(intersection1);
+                planeNormals.Add(planeNormal);
+                planeTriangles.Add(newVertices.Count - 1);
+
+                planeVertices.Add(intersection2);
+                planeNormals.Add(planeNormal);
+                planeTriangles.Add(newVertices.Count - 1);
+
             }
         }
 
         // calculate intersecting plane center and create triangles with it
         Vector3 planeCenter = new Vector3(0,0,0);
-        for (int i = 0; i < planeTriangles.Count; i+= 2)
-            planeCenter += newVertices[planeTriangles[i]];
+        foreach (var pv in planeVertices)
+            planeCenter += pv;
+        planeCenter /= (planeVertices.Count);
 
-        planeCenter /= (planeTriangles.Count / 2);
-        newVertices.Add(planeCenter);
-        newNormals.Add(planeNormal);
         for (int i = 0; i < planeTriangles.Count; i += 2)
         {
-            newTriangles.Add(planeTriangles[i]);
-            newTriangles.Add(newVertices.Count - 1);
-            newTriangles.Add(planeTriangles[i + 1]);
+            newVertices.Add(planeVertices[i]);
+            newVertices.Add(planeCenter); 
+            newVertices.Add(planeVertices[i + 1]);
+
+            newNormals.Add(planeNormal);
+            newNormals.Add(planeNormal);
+            newNormals.Add(planeNormal);
+
+            int cnt = newVertices.Count;
+            newTriangles.Add(cnt - 3);
+            newTriangles.Add(cnt - 2);
+            newTriangles.Add(cnt - 1);
         }
 
         vertices = newVertices;

@@ -285,12 +285,13 @@ public class Delaunay
         float dx = maxX - minX;
         float dy = maxY - minY;
         float dz = maxZ - minZ;
-        float deltaMax = Mathf.Max(dx, dy, dz) * 20;
+        float deltaMax = Mathf.Max(dx, dy, dz) * 100;
+        float offset = 100;
 
-        Vector3 p1 = new Vector3(minX - 1, minY - 1, minZ - 1);
-        Vector3 p2 = new Vector3(maxX + deltaMax, minY - 1, minZ - 1);
-        Vector3 p3 = new Vector3(minX - 1, maxY + deltaMax, minZ - 1);
-        Vector3 p4 = new Vector3(minX - 1, minY - 1, maxZ + deltaMax);
+        Vector3 p1 = new Vector3(minX - offset, minY - offset, minZ - offset);
+        Vector3 p2 = new Vector3(maxX + deltaMax, minY - offset, minZ - offset);
+        Vector3 p3 = new Vector3(minX - offset, maxY + deltaMax, minZ - offset);
+        Vector3 p4 = new Vector3(minX - offset, minY - offset, maxZ + deltaMax);
 
         int ind = Vertices.Count;
         Vertices.Add(p1);

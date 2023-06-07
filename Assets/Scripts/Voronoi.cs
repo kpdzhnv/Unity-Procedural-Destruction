@@ -20,9 +20,6 @@ public class Voronoi
     // ALL vertices that are used for the algorithms
     public List<Vector3> vertices;
 
-    // mesh triangles with a proper logic
-    private List<int> triangles;
-
     // output array of Voronoi cells
     public List<VoronoiCell> cells;
 
@@ -34,7 +31,6 @@ public class Voronoi
 
         cells = new List<VoronoiCell>();
         vertices = new List<Vector3>();
-        triangles = new List<int>();
 
         minBounds = bounds.min;
         maxBounds = bounds.max;
@@ -49,13 +45,10 @@ public class Voronoi
         delaunay.Triangulate();
 
         CreateCells();
-        Debug.Log($"cells.Count {cells.Count}");
     }
 
     public void CreateCells()
     {
-        Debug.Log($"vertices.Count {vertices.Count}");
-        Debug.Log($"boundaryPointsCount {boundaryPointsCount}");
         // each Delaunay vertice is a center of a corresponding Voronoi cell
         for (int i = 0; i < vertices.Count; i++)
         {
@@ -74,14 +67,11 @@ public class Voronoi
             if (cell.isBad)
                 continue;
 
-            Debug.Log($"-------------------------------------");
-            Debug.Log($"vertices.Count {cell.vertices.Count}");
             // after creating the basic cell, it needs to be cut with the faces of the initial mesh
-            for (int j = 0; j < triangles.Count; j+=3)
+            for (int j = 0; j < meshTriangles.Length; j+=3)
             {
-                cell.CutWithPlane(vertices[triangles[j]], vertices[triangles[j + 1]], vertices[triangles[j + 2]]);
+                cell.CutWithPlane(meshVertices[meshTriangles[j]], meshVertices[meshTriangles[j + 1]], meshVertices[meshTriangles[j + 2]]);
             }
-            Debug.Log($"vertices.Count {cell.vertices.Count}");
             cells.Add(cell);
         }
     }
@@ -99,29 +89,24 @@ public class Voronoi
                 boundaryPointsCount++;
             }
         }
-        for (int i = 0; i < meshTriangles.Length; i += 3)
-        {
-            triangles.Add(vertices.IndexOf(meshVertices[meshTriangles[i]]));
-            triangles.Add(vertices.IndexOf(meshVertices[meshTriangles[i + 1]]));
-            triangles.Add(vertices.IndexOf(meshVertices[meshTriangles[i + 2]]));
-        }
 
-        int pointcount = 0;
-        while (pointcount != insidePointsCount)
-        {
-            float val = Mathf.Pow(Random.value, 4);
+        vertices.Add(new Vector3(0, 0, 0));
+        //int pointcount = 0;
+        //while (pointcount != insidePointsCount)
+        //{
+        //    float val = Mathf.Pow(Random.value, 2);
 
-            // -1 ... +1 values
-            float x = Random.value * 2 - 1;
-            float y = Random.value * 2 - 1;
-            float z = Random.value * 2 - 1;
-            var v = new Vector3(x, y, z) * val + hitPoint;
-            if (IsInsideMesh(v))
-            {
-                vertices.Add(v);
-                pointcount++;
-            }
-        }
+        //    -1... +1 values
+        //    float x = Random.value * 2 - 1;
+        //    float y = Random.value * 2 - 1;
+        //    float z = Random.value * 2 - 1;
+        //    var v = new Vector3(x, y, z) * val + hitPoint;
+        //    if (IsInsideMesh(v))
+        //    {
+        //        vertices.Add(v);
+        //        pointcount++;
+        //    }
+        //}
     }
 
     public bool IsInsideMesh(Vector3 v)

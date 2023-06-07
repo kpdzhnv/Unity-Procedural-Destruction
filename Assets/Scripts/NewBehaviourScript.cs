@@ -11,24 +11,51 @@ public class NewBehaviourScript : MonoBehaviour
     public List<Vector3> vertices;
 
     VoronoiCell cell;
+    private void Start()
+    {
+        mf = GetComponent<MeshFilter>();
+        mc = GetComponent<Collider>();
+
+        GenerateVertices();
+        cell = new VoronoiCell(Vector3.zero, vertices);
+    }
 
     // Update is called once per frame
     void Update()
     {
-        Debug.DrawLine(new Vector3(0, 0.5f, 0.5f), new Vector3(0.5f, 0.5f, 0), Color.black);
-        Debug.DrawLine(new Vector3(0.5f, 0.5f, 0), new Vector3(0.5f, 0, 0.5f), Color.black);
-        Debug.DrawLine(new Vector3(0.5f, 0, 0.5f), new Vector3(0, 0.5f, 0.5f), Color.black);
+        var tris = mf.mesh.triangles;
+        var verts = mf.mesh.vertices;
+        for (int i = 0; i < tris.Length; i+=3)
+        {
+            Debug.DrawLine(verts[tris[i]], verts[tris[i + 1]], Color.black);
+            Debug.DrawLine(verts[tris[i + 1]], verts[tris[i + 2]], Color.black);
+            Debug.DrawLine(verts[tris[i]], verts[tris[i + 2]], Color.black);
+        }
+
+
+        if (cell != null)
+        {
+            for (int i = 0; i < cell.triangles.Count; i += 3)
+            {
+                Debug.DrawLine(cell.vertices[cell.triangles[i]], cell.vertices[cell.triangles[i + 1]], Color.cyan);
+                Debug.DrawLine(cell.vertices[cell.triangles[i + 1]], cell.vertices[cell.triangles[i + 2]], Color.cyan);
+                Debug.DrawLine(cell.vertices[cell.triangles[i]], cell.vertices[cell.triangles[i + 2]], Color.cyan);
+            }
+        }
         if (Input.GetButtonDown("Jump"))
         {
-            mf = GetComponent<MeshFilter>();
-            mc = GetComponent<Collider>();
 
-            GenerateVertices();
-            cell = new VoronoiCell(Vector3.zero, vertices);
 
-            cell.CutWithPlane(new Vector3(0, 0.5f, 0.5f),
-                new Vector3(0.5f, 0.5f, 0),
-                new Vector3(0.5f, 0, 0.5f));
+            cell.CutWithPlane(new Vector3(0.5f, 0.5f, 0),
+                new Vector3(0, 0.5f, 0.5f),
+                new Vector3(0.5f, -0.5f, 0.5f));
+
+            //cell.CutWithPlane(new Vector3(0, 1, 0),
+            //    new Vector3(0, -1, 0.5f),
+            //    new Vector3(0, -1, -1));
+
+
+
             // instantiate part
             var part = new GameObject("part");
 

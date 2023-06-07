@@ -487,7 +487,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 55411b1e10a411b4e9f3f1091f9cffb4, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  count: 1
+  count: 5
   VFXPrefab: {fileID: 100008, guid: 7075bd5fe1480184695a32611c15da57, type: 3}
 --- !u!23 &767382697
 MeshRenderer:

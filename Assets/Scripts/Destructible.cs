@@ -98,10 +98,10 @@ public class Destructible : MonoBehaviour
 
         }
 
-        var c = voronoi.cells[0];
-        Gizmos.color = Color.magenta;
-        foreach (var p in c.vertices)
-            Gizmos.DrawSphere(p, 0.02f);
+        //var c = voronoi.cells[0];
+        //Gizmos.color = Color.magenta;
+        //foreach (var p in c.vertices)
+        //    Gizmos.DrawSphere(p, 0.02f);
 
         //foreach (var c in voronoi.cells)
         //{
