@@ -68,12 +68,13 @@ public class Voronoi
                 continue;
 
             // after creating the basic cell, it needs to be cut with the faces of the initial mesh
-            for (int j = 0; j < meshTriangles.Length; j+=3)
+            for (int j = 0; j < meshTriangles.Length; j += 3)
             {
                 cell.CutWithPlane(meshVertices[meshTriangles[j]], meshVertices[meshTriangles[j + 1]], meshVertices[meshTriangles[j + 2]]);
             }
             cells.Add(cell);
         }
+
     }
 
     // generates vertices up until pointcount and modifies vertices & triangles Lists
@@ -90,23 +91,22 @@ public class Voronoi
             }
         }
 
-        vertices.Add(new Vector3(0, 0, 0));
-        //int pointcount = 0;
-        //while (pointcount != insidePointsCount)
-        //{
-        //    float val = Mathf.Pow(Random.value, 2);
+        int pointcount = 0;
+        while (pointcount != insidePointsCount)
+        {
+            float val = Mathf.Pow(Random.value * 10, 2);
 
-        //    -1... +1 values
-        //    float x = Random.value * 2 - 1;
-        //    float y = Random.value * 2 - 1;
-        //    float z = Random.value * 2 - 1;
-        //    var v = new Vector3(x, y, z) * val + hitPoint;
-        //    if (IsInsideMesh(v))
-        //    {
-        //        vertices.Add(v);
-        //        pointcount++;
-        //    }
-        //}
+            // -1... +1 values
+            float x = Random.value * 2 - 1;
+            float y = Random.value * 2 - 1;
+            float z = Random.value * 2 - 1;
+            var v = new Vector3(x, y, z) * val + hitPoint;
+            if (IsInsideMesh(v))
+            {
+                vertices.Add(v);
+                pointcount++;
+            }
+        }
     }
 
     public bool IsInsideMesh(Vector3 v)

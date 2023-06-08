@@ -259,7 +259,6 @@ public class Delaunay
                 tet.IsBad = true;
         }
         Tetrahedra.RemoveAll((Tetrahedron t) => t.IsBad);
-        Debug.Log($"Tetrahedra.Count {Tetrahedra.Count}");
     }
 
     // initialization of a VERY huge tetrahedron that has all vertices included
