@@ -111,11 +111,11 @@ public class Destructible : MonoBehaviour
 
         // the big tetrahedron
 
-       Gizmos.DrawLine(voronoi.vertices[voronoi.delaunay.THETETRAHEDRON.A], voronoi.vertices[voronoi.delaunay.THETETRAHEDRON.B]);
-        Gizmos.DrawLine(voronoi.vertices[voronoi.delaunay.THETETRAHEDRON.A], voronoi.vertices[voronoi.delaunay.THETETRAHEDRON.C]);
-        Gizmos.DrawLine(voronoi.vertices[voronoi.delaunay.THETETRAHEDRON.A], voronoi.vertices[voronoi.delaunay.THETETRAHEDRON.D]);
-        Gizmos.DrawLine(voronoi.vertices[voronoi.delaunay.THETETRAHEDRON.B], voronoi.vertices[voronoi.delaunay.THETETRAHEDRON.C]);
-        Gizmos.DrawLine(voronoi.vertices[voronoi.delaunay.THETETRAHEDRON.B], voronoi.vertices[voronoi.delaunay.THETETRAHEDRON.D]);
-        Gizmos.DrawLine(voronoi.vertices[voronoi.delaunay.THETETRAHEDRON.C], voronoi.vertices[voronoi.delaunay.THETETRAHEDRON.D]);
+       //Gizmos.DrawLine(voronoi.vertices[voronoi.delaunay.THETETRAHEDRON.A], voronoi.vertices[voronoi.delaunay.THETETRAHEDRON.B]);
+       // Gizmos.DrawLine(voronoi.vertices[voronoi.delaunay.THETETRAHEDRON.A], voronoi.vertices[voronoi.delaunay.THETETRAHEDRON.C]);
+       // Gizmos.DrawLine(voronoi.vertices[voronoi.delaunay.THETETRAHEDRON.A], voronoi.vertices[voronoi.delaunay.THETETRAHEDRON.D]);
+       // Gizmos.DrawLine(voronoi.vertices[voronoi.delaunay.THETETRAHEDRON.B], voronoi.vertices[voronoi.delaunay.THETETRAHEDRON.C]);
+       // Gizmos.DrawLine(voronoi.vertices[voronoi.delaunay.THETETRAHEDRON.B], voronoi.vertices[voronoi.delaunay.THETETRAHEDRON.D]);
+       // Gizmos.DrawLine(voronoi.vertices[voronoi.delaunay.THETETRAHEDRON.C], voronoi.vertices[voronoi.delaunay.THETETRAHEDRON.D]);
     }
 }

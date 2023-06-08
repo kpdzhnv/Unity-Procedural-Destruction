@@ -37,7 +37,6 @@ public class VoronoiCell
         var planeTriangles = new List<int>();
         var planeVertices = new List<Vector3>();
 
-        Debug.Log(triangles.Count);
         for (int i = 0; i < triangles.Count; i += 3)
         {
             var v1 = vertices[triangles[i]];

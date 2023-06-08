@@ -67,18 +67,27 @@ public class Voronoi
             if (cell.isBad)
                 continue;
 
-            // after creating the basic cell, it needs to be cut with the faces of the initial mesh
             for (int j = 0; j < meshTriangles.Length; j += 3)
             {
                 cell.CutWithPlane(meshVertices[meshTriangles[j]], meshVertices[meshTriangles[j + 1]], meshVertices[meshTriangles[j + 2]]);
             }
             cells.Add(cell);
         }
-
     }
 
-    // generates vertices up until pointcount and modifies vertices & triangles Lists
-    public void GenerateVertices()
+
+    public void CutCells()
+    {
+        foreach (var cell in cells)
+            // after creating the basic cell, it needs to be cut with the faces of the initial mesh
+            for (int j = 0; j < meshTriangles.Length; j += 3)
+            {
+                cell.CutWithPlane(meshVertices[meshTriangles[j]], meshVertices[meshTriangles[j + 1]], meshVertices[meshTriangles[j + 2]]);
+            }
+    }
+
+        // generates vertices up until pointcount and modifies vertices & triangles Lists
+        public void GenerateVertices()
     {
         boundaryPointsCount = 0;
         // add initial mesh vertices 

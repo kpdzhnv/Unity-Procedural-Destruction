@@ -243,7 +243,7 @@ public class Delaunay
             }
         }
 
-        //RemoveTheTetrahedron();
+        RemoveTheTetrahedron();
 
         var tetsToFLip = new List<Tetrahedron>();
         // flip tets
@@ -255,6 +255,7 @@ public class Delaunay
         // clean up the extra tetrahedra that are generated for the non-convex meshes
         foreach (var tet in Tetrahedra)
         {
+            Debug.Log("tet outside");
             if (!IsInsideMesh(tet.GetCentroid(Vertices[tet.A], Vertices[tet.B], Vertices[tet.C], Vertices[tet.D])))
                 tet.IsBad = true;
         }
