@@ -2,7 +2,8 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
-[RequireComponent(typeof(Rigidbody))]
+[RequireComponent(typeof(MeshFilter))]
+[RequireComponent(typeof(MeshRenderer))]
 [RequireComponent(typeof(Collider))]
 public class Destructible : MonoBehaviour
 {
@@ -12,6 +13,7 @@ public class Destructible : MonoBehaviour
 
     MeshFilter mf;
     Collider mc;
+    Material mat;
     public GameObject VFXPrefab;
 
     // Start is called before the first frame update  
@@ -19,6 +21,7 @@ public class Destructible : MonoBehaviour
     {
         mf = GetComponent<MeshFilter>();
         mc = GetComponent<Collider>();
+        mat = GetComponent<MeshRenderer>().sharedMaterial;
     }
 
     // Update is called once per frame
@@ -29,7 +32,8 @@ public class Destructible : MonoBehaviour
             RaycastHit hit = new RaycastHit();
             if (mc.Raycast(Camera.main.ScreenPointToRay(Input.mousePosition), out hit, 9999f))
             {
-                Instantiate(VFXPrefab, hit.point, Quaternion.identity);
+                if (VFXPrefab!= null)
+                    Instantiate(VFXPrefab, hit.point, Quaternion.identity);
                 Break(hit.point);
             }
         }
@@ -49,8 +53,11 @@ public class Destructible : MonoBehaviour
         {
             // instantiate part
             var part = new GameObject("part");
+            part.transform.position = this.transform.position;
+            part.transform.rotation = this.transform.rotation;
+            part.transform.localScale = this.transform.localScale;
 
-            part.transform.SetParent(transform.parent, false);
+            part.transform.SetParent(transform, false);
             part.transform.localPosition = Vector3.zero;
             part.transform.localRotation = Quaternion.identity;
             part.transform.localScale = Vector3.one;
@@ -60,62 +67,24 @@ public class Destructible : MonoBehaviour
             mesh.SetTriangles(cell.triangles, 0);
             mesh.SetNormals(cell.normals);
 
-            part.AddComponent<MeshRenderer>().sharedMaterial = GetComponent<MeshRenderer>().material;
+            part.AddComponent<MeshRenderer>().sharedMaterial = mat;
             part.AddComponent<MeshFilter>().sharedMesh = mesh;
-            //MeshCollider pmc = part.AddComponent<MeshCollider>();
-            //pmc.convex = true;
-            //pmc.sharedMesh = mesh;
+            MeshCollider pmc = part.AddComponent<MeshCollider>();
+            pmc.convex = true;
+            pmc.sharedMesh = mesh;
 
-            //Rigidbody prb = part.AddComponent<Rigidbody>();
-            //prb.mass = 0.5f;
-            //prb.collisionDetectionMode = CollisionDetectionMode.ContinuousDynamic;
-        }
-        //Destroy(this.gameObject);
-    }
-
-    private void OnDrawGizmos()
-    {
-        // tetrahedralization
-        foreach (var t in voronoi.delaunay.Tetrahedra)
-        {
-            Gizmos.color = Color.white;
-            Gizmos.DrawLine(voronoi.vertices[t.A], voronoi.vertices[t.B]);
-            Gizmos.DrawLine(voronoi.vertices[t.A], voronoi.vertices[t.C]);
-            Gizmos.DrawLine(voronoi.vertices[t.A], voronoi.vertices[t.D]);
-            Gizmos.DrawLine(voronoi.vertices[t.B], voronoi.vertices[t.C]);
-            Gizmos.DrawLine(voronoi.vertices[t.B], voronoi.vertices[t.D]);
-            Gizmos.DrawLine(voronoi.vertices[t.C], voronoi.vertices[t.D]);
-
-
-            Gizmos.color = Color.red;
-            Gizmos.DrawSphere(t.Circumcenter, 0.05f);
-
-            Gizmos.color = Color.blue;
-            Gizmos.DrawSphere(voronoi.vertices[t.A], 0.02f);
-            Gizmos.DrawSphere(voronoi.vertices[t.B], 0.02f);
-            Gizmos.DrawSphere(voronoi.vertices[t.C], 0.02f);
-            Gizmos.DrawSphere(voronoi.vertices[t.D], 0.02f);
-
+            Rigidbody prb = part.AddComponent<Rigidbody>();
+            prb.mass = 0.5f;
+            prb.collisionDetectionMode = CollisionDetectionMode.ContinuousDynamic;
         }
 
-        //var c = voronoi.cells[0];
-        //Gizmos.color = Color.magenta;
-        //foreach (var p in c.vertices)
-        //    Gizmos.DrawSphere(p, 0.02f);
-
-        //foreach (var c in voronoi.cells)
-        //{
-        //    Gizmos.DrawSphere(c.seed, 0.02f);
-
-        //}
-
-        // the big tetrahedron
-
-       //Gizmos.DrawLine(voronoi.vertices[voronoi.delaunay.THETETRAHEDRON.A], voronoi.vertices[voronoi.delaunay.THETETRAHEDRON.B]);
-       // Gizmos.DrawLine(voronoi.vertices[voronoi.delaunay.THETETRAHEDRON.A], voronoi.vertices[voronoi.delaunay.THETETRAHEDRON.C]);
-       // Gizmos.DrawLine(voronoi.vertices[voronoi.delaunay.THETETRAHEDRON.A], voronoi.vertices[voronoi.delaunay.THETETRAHEDRON.D]);
-       // Gizmos.DrawLine(voronoi.vertices[voronoi.delaunay.THETETRAHEDRON.B], voronoi.vertices[voronoi.delaunay.THETETRAHEDRON.C]);
-       // Gizmos.DrawLine(voronoi.vertices[voronoi.delaunay.THETETRAHEDRON.B], voronoi.vertices[voronoi.delaunay.THETETRAHEDRON.D]);
-       // Gizmos.DrawLine(voronoi.vertices[voronoi.delaunay.THETETRAHEDRON.C], voronoi.vertices[voronoi.delaunay.THETETRAHEDRON.D]);
+        var d = this.GetComponent<Destructible>();
+        Destroy(d);
+        Destroy(mc);
+        Destroy(mf);
+        var rb = this.GetComponent<Rigidbody>();
+        if (rb)
+            Destroy(rb);
     }
+
 }

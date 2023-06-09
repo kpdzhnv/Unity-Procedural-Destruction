@@ -57,7 +57,7 @@ public class Voronoi
             if (i < boundaryPointsCount)
                 points.Add(vertices[i]);
 
-            // get all the points for the cell using the duality of the Delaunay & Voronoi
+            //get all the points for the cell using the duality of the Delaunay & Voronoi
             foreach (var t in delaunay.Tetrahedra)
                 if (t.ContainsVertex(i))
                     // add the circumcenter
@@ -66,7 +66,6 @@ public class Voronoi
             VoronoiCell cell = new VoronoiCell(vertices[i], points);
             if (cell.isBad)
                 continue;
-
             for (int j = 0; j < meshTriangles.Length; j += 3)
             {
                 cell.CutWithPlane(meshVertices[meshTriangles[j]], meshVertices[meshTriangles[j + 1]], meshVertices[meshTriangles[j + 2]]);
@@ -86,24 +85,21 @@ public class Voronoi
             }
     }
 
-        // generates vertices up until pointcount and modifies vertices & triangles Lists
-        public void GenerateVertices()
+    // generates vertices up until pointcount and modifies vertices & triangles Lists
+    public void GenerateVertices()
     {
+        vertices = new List<Vector3>();
         boundaryPointsCount = 0;
         // add initial mesh vertices 
         foreach (var v in meshVertices)
-        {
             if (!vertices.Contains(v))
-            {
                 vertices.Add(v);
-                boundaryPointsCount++;
-            }
-        }
 
+        boundaryPointsCount = vertices.Count;
         int pointcount = 0;
         while (pointcount != insidePointsCount)
         {
-            float val = Mathf.Pow(Random.value * 10, 2);
+            float val = Mathf.Pow(Random.value * 3, 2);
 
             // -1... +1 values
             float x = Random.value * 2 - 1;

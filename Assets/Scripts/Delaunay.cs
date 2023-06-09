@@ -73,6 +73,7 @@ public class Delaunay
             C = c;
             D = d;
             CalculateCircumsphere(v1, v2, v3, v4);
+            IsBad = false;
         }
         public Vector3 GetCentroid(Vector3 v1, Vector3 v2, Vector3 v3, Vector3 v4)
         {
@@ -243,7 +244,9 @@ public class Delaunay
             }
         }
 
+        Debug.Log($"Tetrahedra.Count {Tetrahedra.Count}");
         RemoveTheTetrahedron();
+        Debug.Log($"Tetrahedra.Count {Tetrahedra.Count}");
 
         var tetsToFLip = new List<Tetrahedron>();
         // flip tets
@@ -255,11 +258,14 @@ public class Delaunay
         // clean up the extra tetrahedra that are generated for the non-convex meshes
         foreach (var tet in Tetrahedra)
         {
-            Debug.Log("tet outside");
             if (!IsInsideMesh(tet.GetCentroid(Vertices[tet.A], Vertices[tet.B], Vertices[tet.C], Vertices[tet.D])))
+            {
                 tet.IsBad = true;
+                Debug.Log("tet outside");
+            }
         }
         Tetrahedra.RemoveAll((Tetrahedron t) => t.IsBad);
+        Debug.Log($"Tetrahedra.Count {Tetrahedra.Count}");
     }
 
     // initialization of a VERY huge tetrahedron that has all vertices included
@@ -285,8 +291,8 @@ public class Delaunay
         float dx = maxX - minX;
         float dy = maxY - minY;
         float dz = maxZ - minZ;
-        float deltaMax = Mathf.Max(dx, dy, dz) * 100;
-        float offset = 100;
+        float deltaMax = Mathf.Max(dx, dy, dz) * 4;
+        float offset = 1;
 
         Vector3 p1 = new Vector3(minX - offset, minY - offset, minZ - offset);
         Vector3 p2 = new Vector3(maxX + deltaMax, minY - offset, minZ - offset);
