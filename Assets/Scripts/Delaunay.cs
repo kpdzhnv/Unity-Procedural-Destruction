@@ -244,9 +244,7 @@ public class Delaunay
             }
         }
 
-        Debug.Log($"Tetrahedra.Count {Tetrahedra.Count}");
         RemoveTheTetrahedron();
-        Debug.Log($"Tetrahedra.Count {Tetrahedra.Count}");
 
         var tetsToFLip = new List<Tetrahedron>();
         // flip tets
@@ -261,11 +259,9 @@ public class Delaunay
             if (!IsInsideMesh(tet.GetCentroid(Vertices[tet.A], Vertices[tet.B], Vertices[tet.C], Vertices[tet.D])))
             {
                 tet.IsBad = true;
-                Debug.Log("tet outside");
             }
         }
         Tetrahedra.RemoveAll((Tetrahedron t) => t.IsBad);
-        Debug.Log($"Tetrahedra.Count {Tetrahedra.Count}");
     }
 
     // initialization of a VERY huge tetrahedron that has all vertices included
