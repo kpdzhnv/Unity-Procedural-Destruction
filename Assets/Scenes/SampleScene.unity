@@ -38,7 +38,7 @@ RenderSettings:
   m_ReflectionIntensity: 1
   m_CustomReflection: {fileID: 0}
   m_Sun: {fileID: 0}
-  m_IndirectSpecularColor: {r: 0.18028334, g: 0.22571328, b: 0.3069217, a: 1}
+  m_IndirectSpecularColor: {r: 0.18028378, g: 0.22571412, b: 0.30692285, a: 1}
   m_UseRadianceAmbientProbe: 0
 --- !u!157 &3
 LightmapSettings:
@@ -201,7 +201,7 @@ Transform:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 330585543}
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 0, y: -0.9, z: -6.37}
+  m_LocalPosition: {x: 0, y: 0, z: -6.37}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
@@ -332,7 +332,7 @@ Transform:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 377356314}
   m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
-  m_LocalPosition: {x: 0, y: -1.35, z: 5.005001}
+  m_LocalPosition: {x: 0, y: -0.6, z: 0}
   m_LocalScale: {x: 2, y: 2, z: 2}
   m_ConstrainProportionsScale: 1
   m_Children: []
@@ -488,6 +488,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   count: 2
+  impactForce: 0
   VFXPrefab: {fileID: 100008, guid: 7075bd5fe1480184695a32611c15da57, type: 3}
 --- !u!23 &767382697
 MeshRenderer:
@@ -682,7 +683,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 55411b1e10a411b4e9f3f1091f9cffb4, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  count: 50
+  count: 100
+  impactForce: 10
   VFXPrefab: {fileID: 100008, guid: 7075bd5fe1480184695a32611c15da57, type: 3}
 --- !u!65 &1476929323
 BoxCollider:
@@ -870,12 +872,13 @@ MonoBehaviour:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1502455611}
-  m_Enabled: 1
+  m_Enabled: 0
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 55411b1e10a411b4e9f3f1091f9cffb4, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
   count: 100
+  impactForce: 0
   VFXPrefab: {fileID: 100008, guid: 7075bd5fe1480184695a32611c15da57, type: 3}
 --- !u!54 &1502455617
 Rigidbody:
@@ -969,12 +972,13 @@ MonoBehaviour:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1777598602}
-  m_Enabled: 1
+  m_Enabled: 0
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 55411b1e10a411b4e9f3f1091f9cffb4, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  count: 10
+  count: 100
+  impactForce: 0
   VFXPrefab: {fileID: 100008, guid: 7075bd5fe1480184695a32611c15da57, type: 3}
 --- !u!65 &1777598605
 BoxCollider:

@@ -9,7 +9,7 @@ public class Destructible : MonoBehaviour
 {
     public Voronoi voronoi;
     public int count = 100;
-    //public int size = 1;
+    public float impactForce = 0;
 
     MeshFilter mf;
     Collider mc;
@@ -49,6 +49,8 @@ public class Destructible : MonoBehaviour
 
     public void Explode()
     {
+        if (VFXPrefab != null)
+            Instantiate(VFXPrefab, mc.bounds.center, Quaternion.identity);
         // actual center of an object, not depending on the pivot
         Break(mc.bounds.center);
     }
@@ -60,6 +62,7 @@ public class Destructible : MonoBehaviour
         foreach (VoronoiCell cell in voronoi.cells)
         {
             // instantiate part
+            // transform
             var part = new GameObject("part");
             part.transform.position = this.transform.position;
             part.transform.rotation = this.transform.rotation;
@@ -70,9 +73,10 @@ public class Destructible : MonoBehaviour
             part.transform.localRotation = Quaternion.identity;
             part.transform.localScale = Vector3.one;
 
+            // mesh
             var mesh = new Mesh();
             mesh.SetVertices(cell.vertices);
-            mesh.SetTriangles(cell.triangles, 0);
+            mesh.SetTriangles(cell.triangles, 0); // !!!!!!!!!!!!!
             mesh.SetNormals(cell.normals);
 
             part.AddComponent<MeshRenderer>().sharedMaterial = mat;
@@ -84,7 +88,11 @@ public class Destructible : MonoBehaviour
             Rigidbody prb = part.AddComponent<Rigidbody>();
             prb.mass = 0.5f;
             prb.collisionDetectionMode = CollisionDetectionMode.ContinuousDynamic;
-            prb.velocity = (cell.seed - point) * 2;
+            
+            Matrix4x4 localToWorld = transform.localToWorldMatrix;
+            
+            prb.velocity = (localToWorld.MultiplyPoint3x4(cell.seed) - point) * impactForce;
+            
         }
 
         var d = this.GetComponent<Destructible>();

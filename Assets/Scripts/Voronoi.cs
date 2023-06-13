@@ -46,8 +46,6 @@ public class Voronoi
         delaunay.Triangulate();
 
         CreateCells();
-        foreach (var c in cells)
-            Debug.Log(Vector3.Distance(hitPoint, c.seed));
     }
 
     public void CreateCells()
