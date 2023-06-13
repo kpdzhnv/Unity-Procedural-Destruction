@@ -13,7 +13,8 @@ public class Destructible : MonoBehaviour
 
     MeshFilter mf;
     Collider mc;
-    Material mat;
+    Material mat_out;
+    public  Material mat_in;
     public GameObject VFXPrefab;
 
     // Start is called before the first frame update  
@@ -21,7 +22,8 @@ public class Destructible : MonoBehaviour
     {
         mf = GetComponent<MeshFilter>();
         mc = GetComponent<Collider>();
-        mat = GetComponent<MeshRenderer>().sharedMaterial;
+        mat_out = GetComponent<MeshRenderer>().sharedMaterial;
+        //mat_in = GetComponent<MeshRenderer>().sharedMaterials[1];
     }
 
     // Update is called once per frame
@@ -75,11 +77,13 @@ public class Destructible : MonoBehaviour
 
             // mesh
             var mesh = new Mesh();
+            mesh.subMeshCount = 2;
             mesh.SetVertices(cell.vertices);
-            mesh.SetTriangles(cell.triangles, 0); // !!!!!!!!!!!!!
+            mesh.SetTriangles(cell.triangles_out, 0);
+            mesh.SetTriangles(cell.triangles_in, 1);
             mesh.SetNormals(cell.normals);
 
-            part.AddComponent<MeshRenderer>().sharedMaterial = mat;
+            part.AddComponent<MeshRenderer>().sharedMaterials = new Material[2] { mat_out, mat_in };
             part.AddComponent<MeshFilter>().sharedMesh = mesh;
             MeshCollider pmc = part.AddComponent<MeshCollider>();
             pmc.convex = true;
