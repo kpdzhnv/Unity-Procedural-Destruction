@@ -64,7 +64,7 @@ public class Delaunay
         public bool IsBad { get; set; }
 
         public Vector3 Circumcenter { get; set; }
-        float CircumradiusSquared { get; set; }
+        public float CircumradiusSquared { get; set; }
 
         public Tetrahedron(int a, int b, int c, int d, Vector3 v1, Vector3 v2, Vector3 v3, Vector3 v4)
         {

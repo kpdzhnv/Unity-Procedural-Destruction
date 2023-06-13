@@ -37,6 +37,9 @@ public class Destructible : MonoBehaviour
                 Break(hit.point);
             }
         }
+
+        if (Input.GetButtonDown("Jump"))
+            Explode();
     }
 
     private void OnCollisionEnter(Collision collision)
@@ -44,6 +47,11 @@ public class Destructible : MonoBehaviour
         //Break();
     }
 
+    public void Explode()
+    {
+        // actual center of an object, not depending on the pivot
+        Break(mc.bounds.center);
+    }
     public void Break(Vector3 point)
     {
         voronoi = new Voronoi(mf.sharedMesh, mc.bounds, count, point);
@@ -76,6 +84,7 @@ public class Destructible : MonoBehaviour
             Rigidbody prb = part.AddComponent<Rigidbody>();
             prb.mass = 0.5f;
             prb.collisionDetectionMode = CollisionDetectionMode.ContinuousDynamic;
+            prb.velocity = (cell.seed - point) * 2;
         }
 
         var d = this.GetComponent<Destructible>();

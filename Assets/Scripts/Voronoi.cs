@@ -12,6 +12,7 @@ public class Voronoi
     // bounding box, that is used for an efficient points generation
     public Vector3 minBounds, maxBounds;
     public Vector3  hitPoint;
+    public float minFragmentSize = 0.01f;
 
     // initial mesh info
     public Vector3[] meshVertices;
@@ -45,6 +46,8 @@ public class Voronoi
         delaunay.Triangulate();
 
         CreateCells();
+        foreach (var c in cells)
+            Debug.Log(Vector3.Distance(hitPoint, c.seed));
     }
 
     public void CreateCells()
@@ -57,12 +60,19 @@ public class Voronoi
             if (i < boundaryPointsCount)
                 points.Add(vertices[i]);
 
+            var isSmall = false;
             //get all the points for the cell using the duality of the Delaunay & Voronoi
             foreach (var t in delaunay.Tetrahedra)
                 if (t.ContainsVertex(i))
+                {
                     // add the circumcenter
                     points.Add(t.Circumcenter);
+                    if (t.CircumradiusSquared < minFragmentSize)
+                        isSmall = true;
+                }
 
+            if (isSmall)
+                continue;
             VoronoiCell cell = new VoronoiCell(vertices[i], points);
             if (cell.isBad)
                 continue;
