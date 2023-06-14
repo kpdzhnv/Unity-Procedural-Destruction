@@ -20,7 +20,7 @@ Material:
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
-  m_Name: trans
+  m_Name: trans dark
   m_Shader: {fileID: 4800000, guid: 933532a4fcc9baf4fa0491de14d08ed7, type: 3}
   m_ValidKeywords:
   - _ALPHAPREMULTIPLY_ON
@@ -125,8 +125,8 @@ Material:
     - _WorkflowMode: 1
     - _ZWrite: 0
     m_Colors:
-    - _BaseColor: {r: 0.125534, g: 0.19014771, b: 0.2924528, a: 0.91764706}
-    - _Color: {r: 0.12553397, g: 0.19014767, b: 0.29245278, a: 0.91764706}
+    - _BaseColor: {r: 0.12553394, g: 0.19014764, b: 0.29245275, a: 0.7176471}
+    - _Color: {r: 0.12553391, g: 0.19014761, b: 0.29245272, a: 0.7176471}
     - _EmissionColor: {r: 0, g: 0, b: 0, a: 1}
     - _SpecColor: {r: 0.19999996, g: 0.19999996, b: 0.19999996, a: 1}
   m_BuildTextureStacks: []

@@ -36,7 +36,8 @@ public class Destructible : MonoBehaviour
             {
                 if (VFXPrefab!= null)
                     Instantiate(VFXPrefab, hit.point, Quaternion.identity);
-                Break(hit.point);
+                //Break(hit.point);
+                Break(mc.bounds.center);
             }
         }
 
@@ -60,7 +61,7 @@ public class Destructible : MonoBehaviour
     {
         voronoi = new Voronoi(mf.sharedMesh, mc.bounds, count, point);
         voronoi.Generate();
-
+        Debug.Log(voronoi.cells.Count);
         foreach (VoronoiCell cell in voronoi.cells)
         {
             // instantiate part

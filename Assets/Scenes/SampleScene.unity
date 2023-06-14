@@ -686,7 +686,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   count: 100
   impactForce: 10
-  mat_in: {fileID: 2100000, guid: ce87ba51a904c5d4886ad05d2a7bf5d7, type: 2}
+  mat_in: {fileID: 2100000, guid: 4753e043054c9274a8dfda24914eccb3, type: 2}
   VFXPrefab: {fileID: 100008, guid: 7075bd5fe1480184695a32611c15da57, type: 3}
 --- !u!65 &1476929323
 BoxCollider:
@@ -721,7 +721,7 @@ MeshRenderer:
   m_RenderingLayerMask: 1
   m_RendererPriority: 0
   m_Materials:
-  - {fileID: 2100000, guid: 4efdfb3223b8a25459934442b1ca6705, type: 2}
+  - {fileID: 2100000, guid: 3060c0040748aae4b8a99637c52c7eaf, type: 2}
   m_StaticBatchInfo:
     firstSubMesh: 0
     subMeshCount: 0
@@ -872,14 +872,14 @@ MonoBehaviour:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1502455611}
-  m_Enabled: 0
+  m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 55411b1e10a411b4e9f3f1091f9cffb4, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  count: 100
+  count: 500
   impactForce: 0
-  mat_in: {fileID: 0}
+  mat_in: {fileID: 2100000, guid: 4efdfb3223b8a25459934442b1ca6705, type: 2}
   VFXPrefab: {fileID: 100008, guid: 7075bd5fe1480184695a32611c15da57, type: 3}
 --- !u!54 &1502455617
 Rigidbody:
@@ -973,14 +973,14 @@ MonoBehaviour:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1777598602}
-  m_Enabled: 0
+  m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 55411b1e10a411b4e9f3f1091f9cffb4, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  count: 100
+  count: 10
   impactForce: 0
-  mat_in: {fileID: 0}
+  mat_in: {fileID: 2100000, guid: 4efdfb3223b8a25459934442b1ca6705, type: 2}
   VFXPrefab: {fileID: 100008, guid: 7075bd5fe1480184695a32611c15da57, type: 3}
 --- !u!65 &1777598605
 BoxCollider:
