@@ -8,14 +8,16 @@ using UnityEngine;
 public class Destructible : MonoBehaviour
 {
     public Voronoi voronoi;
-    public int count = 100;
-    public float impactForce = 0;
-
     MeshFilter mf;
     Collider mc;
     Material mat_out;
+
+    // input 
     public  Material mat_in;
     public GameObject VFXPrefab;
+    public int count = 100;
+    public float impactForce = 0;
+    public float minCellSize = 0.01f;
 
     // Start is called before the first frame update  
     void Start()
@@ -34,8 +36,8 @@ public class Destructible : MonoBehaviour
             RaycastHit hit = new RaycastHit();
             if (mc.Raycast(Camera.main.ScreenPointToRay(Input.mousePosition), out hit, 9999f))
             {
-                if (VFXPrefab!= null)
-                    Instantiate(VFXPrefab, hit.point, Quaternion.identity);
+                //if (VFXPrefab!= null)
+                    //Instantiate(VFXPrefab, hit.point, Quaternion.identity);
                 //Break(hit.point);
                 Break(mc.bounds.center);
             }
@@ -47,7 +49,8 @@ public class Destructible : MonoBehaviour
 
     private void OnCollisionEnter(Collision collision)
     {
-        //Break();
+        if (collision.gameObject.tag == "Destructor")
+            Break(collision.contacts[0].point);
     }
 
     public void Explode()
@@ -59,7 +62,7 @@ public class Destructible : MonoBehaviour
     }
     public void Break(Vector3 point)
     {
-        voronoi = new Voronoi(mf.sharedMesh, mc.bounds, count, point);
+        voronoi = new Voronoi(mf.sharedMesh, mc.bounds, count, point, minCellSize);
         voronoi.Generate();
         Debug.Log(voronoi.cells.Count);
         foreach (VoronoiCell cell in voronoi.cells)
@@ -92,7 +95,7 @@ public class Destructible : MonoBehaviour
 
             Rigidbody prb = part.AddComponent<Rigidbody>();
             prb.mass = 0.5f;
-            prb.collisionDetectionMode = CollisionDetectionMode.ContinuousDynamic;
+            prb.collisionDetectionMode = CollisionDetectionMode.Discrete;
             
             Matrix4x4 localToWorld = transform.localToWorldMatrix;
             
